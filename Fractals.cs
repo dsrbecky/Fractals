@@ -12,14 +12,16 @@ using System.CodeDom.Compiler;
 
 namespace Fractals
 {
+	public delegate void EventHandlerNoArg();
+
 	public class Form : System.Windows.Forms.Form
 	{		
-		public View view=new View(0,0,1,1,new Settings().textBoxCode.Text);
 		int mouseX,mouseY;
 		Thread refreshThread = null;
-		Settings setDlg = null;
+		SettingsDlg setDlg = new SettingsDlg();
+		public Bitmap bitmap;
+		private object BmpSyncRoot = new object();
 
-		Bitmap bitmap;
 		private System.Windows.Forms.MainMenu mainMenu;
 		private System.Windows.Forms.MenuItem menuItemSave;
 		private System.Windows.Forms.MenuItem menuItemSettings;
@@ -30,6 +32,7 @@ namespace Fractals
 		public Form()
 		{
 			InitializeComponent();
+			setDlg.ViewChanged += new EventHandlerNoArg(RefreshImage);
 		}
 
 		
@@ -119,10 +122,14 @@ namespace Fractals
 				if (e.Button == MouseButtons.Left) zoom = 4;
 				if (e.Button == MouseButtons.Middle) zoom = 1;
 				if (e.Button == MouseButtons.Right) zoom = 0.25;
-				view.Xpos = view.makeX(e.X,ClientRectangle.Width);
-				view.Ypos = view.makeY(e.Y,ClientRectangle.Height);
-				view.Xzoom *= zoom;
-				view.Yzoom *= zoom;
+
+				View tmp = setDlg.view;
+				tmp.Move(				
+						setDlg.view.makeX(e.X,ClientRectangle.Width),
+						setDlg.view.makeY(e.Y,ClientRectangle.Height),
+						tmp.Xzoom * zoom,
+						tmp.Yzoom * zoom);
+				setDlg.view = tmp;
 			}
 			else
 			{ // box zoom
@@ -132,14 +139,40 @@ namespace Fractals
 					view.makeY(e.Y, ClientRectangle.Height));*/
 			}
 			RefreshImage();
-			if (setDlg != null)
-				if (!setDlg.IsDisposed)
+		}
+
+		private void Form1_Resize(object sender, System.EventArgs e)
+		{
+			RefreshImage();
+		}
+
+		public void RefreshImage()
+		{
+			lock (BmpSyncRoot)
+				if (refreshThread != null)
 				{
-					setDlg.Xpos.Value = (decimal)view.Xpos;
-					setDlg.Ypos.Value = (decimal)view.Ypos;
-					setDlg.Xzoom.Value = (decimal)view.Xzoom;
-					setDlg.Yzoom.Value = (decimal)view.Yzoom;
+					refreshThread.Abort();
+					refreshThread = null;
 				}
+
+			if (ClientRectangle.Width == 0 || ClientRectangle.Height == 0) return;
+
+			lock (BmpSyncRoot) bitmap = new Bitmap(ClientRectangle.Width, ClientRectangle.Height);
+			refreshThread = new Thread(new ThreadStart(ThreatRefreshEnteryPoint));
+			refreshThread.Name = "Refresh";
+			refreshThread.Priority = ThreadPriority.BelowNormal;
+			refreshThread.Start();
+		}
+		public void ThreatRefreshEnteryPoint()
+		{
+			if (setDlg.Method != null)
+				setDlg.Method.Invoke(null,new object[] {bitmap, BmpSyncRoot, setDlg.view, new EventHandlerNoArg(IvalidateMe)});
+			System.Diagnostics.Debug.WriteLine("Refresh finished");
+		}
+
+		private void IvalidateMe()
+		{
+			Invalidate();
 		}
 
 		private void menuSave_Click(object sender, System.EventArgs e)
@@ -150,52 +183,23 @@ namespace Fractals
 			t.Start();
 		}
 
-		private void Form1_Resize(object sender, System.EventArgs e)
-		{
-			RefreshImage();
-		}
-
-		public void RefreshImage()
-		{
-			if (refreshThread != null)
-			{
-				refreshThread.Abort();
-				refreshThread = null;
-			}
-			if (ClientRectangle.Width == 0 || ClientRectangle.Height == 0) return;
-
-			Bitmap newbmp = new Bitmap(ClientRectangle.Width, ClientRectangle.Height);
-			if (bitmap == null)
-				bitmap = newbmp;
-			else lock (bitmap) bitmap = newbmp;
-			refreshThread = new Thread(new ThreadStart(ThreatRefreshEnteryPoint));
-			refreshThread.Name = "Refresh";
-			refreshThread.Priority = ThreadPriority.BelowNormal;
-			refreshThread.Start();
-		}
-		public void ThreatRefreshEnteryPoint()
-		{
-			if (view.Method != null)
-				view.Method.Invoke(null,new object[] {bitmap, view, this});
-			System.Diagnostics.Debug.WriteLine("Refresh finished");
-		}
-
 		public void ThreatSaveEnteryPoint()
 		{
-			if (view.Method == null)
+			Settings s = setDlg.settings;
+			if (setDlg.Method == null)
 			{
 				MessageBox.Show ("Please fix code first");
 				menuItemSettings_Click (null,null);
 				return;
 			}
-			View tmpview = view;
+			View tmpview = setDlg.view;
 			SaveFileDialog dlg = new SaveFileDialog();
 			dlg.Filter = "Bitmaps | *.bmp";
 			if (dlg.ShowDialog() == DialogResult.OK)
 			{
 				Bitmap tbmp = new Bitmap(1024, 768);
 				Thread.CurrentThread.Priority = ThreadPriority.Lowest;
-				view.Method.Invoke (null, new object[] {tbmp, tmpview, this});
+				setDlg.Method.Invoke (null, new object[] {tbmp,new object(), tmpview, null});
 				tbmp.Save(dlg.FileName);
 			}
 		}
@@ -208,7 +212,7 @@ namespace Fractals
 
 		private void Form1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
 		{
-			lock (bitmap) e.Graphics.DrawImage(bitmap, 0, 0);
+			lock (BmpSyncRoot) e.Graphics.DrawImage(bitmap, 0, 0);
 		}
 	
 		protected override void OnPaintBackground(PaintEventArgs pevent)
@@ -222,17 +226,9 @@ namespace Fractals
 		}
 
 		private void menuItemSettings_Click(object sender, System.EventArgs e)
-		{
-			if (setDlg != null)
-				if (!setDlg.IsDisposed)
-				{
-					setDlg.BringToFront();
-					return;
-				}
-			setDlg = new Settings();
-			setDlg.view = view;
-			setDlg.formToUpdate = this;
+		{		
 			setDlg.Show();
+			setDlg.BringToFront();
 		}
 	}
 }

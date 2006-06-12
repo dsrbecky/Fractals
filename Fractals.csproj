@@ -123,19 +123,29 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
-                    RelPath = "Settings.cs"
+                    RelPath = "InputBox.cs"
                     SubType = "Form"
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "Settings.resx"
-                    DependentUpon = "Settings.cs"
+                    RelPath = "InputBox.resx"
+                    DependentUpon = "InputBox.cs"
                     BuildAction = "EmbeddedResource"
                 />
                 <File
-                    RelPath = "View.cs"
+                    RelPath = "Settings.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "SettingsDlg.cs"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "SettingsDlg.resx"
+                    DependentUpon = "SettingsDlg.cs"
+                    BuildAction = "EmbeddedResource"
                 />
             </Include>
         </Files>
