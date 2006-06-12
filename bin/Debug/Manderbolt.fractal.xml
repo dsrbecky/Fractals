@@ -1,12 +1,12 @@
 <SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:clr="http://schemas.microsoft.com/soap/encoding/clr/1.0" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
 <SOAP-ENV:Body>
-<a1:Settings id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1749.40118%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<a1:Settings id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1760.26784%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <equations href="#ref-3"/>
 <lastEquation id="ref-4">General</lastEquation>
 <views href="#ref-5"/>
 <lastView id="ref-6">Overview</lastView>
 <colorPaletes href="#ref-7"/>
-<lastColorPalete id="ref-8">Blue spider</lastColorPalete>
+<lastColorPalete id="ref-8">Spectrum</lastColorPalete>
 <customCodes href="#ref-9"/>
 <lastCustomCode id="ref-10"></lastCustomCode>
 <savingRules href="#ref-11"/>
@@ -31,7 +31,7 @@
 </a2:Hashtable>
 <a2:Hashtable id="ref-7" xmlns:a2="http://schemas.microsoft.com/clr/ns/System.Collections">
 <LoadFactor>0.72</LoadFactor>
-<Version>96</Version>
+<Version>100</Version>
 <KeyComparer xsi:null="1"/>
 <HashSize>11</HashSize>
 <Keys href="#ref-17"/>
@@ -88,7 +88,7 @@
 <item id="ref-31" xsi:type="SOAP-ENC:string">buble</item>
 </SOAP-ENC:Array>
 <SOAP-ENC:Array id="ref-16" SOAP-ENC:arrayType="xsd:anyType[7]">
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1749.40118%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1760.26784%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.5</Xpos>
 <Ypos>0</Ypos>
 <Xzoom>1</Xzoom>
@@ -96,7 +96,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1749.40118%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1760.26784%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.580150783061981</Xpos>
 <Ypos>-0.476638704538345</Ypos>
 <Xzoom>60.7531350246409</Xzoom>
@@ -104,7 +104,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1749.40118%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1760.26784%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.567385926538583</Xpos>
 <Ypos>-0.641769530807718</Ypos>
 <Xzoom>16</Xzoom>
@@ -112,7 +112,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1749.40118%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1760.26784%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.102486425516557</Xpos>
 <Ypos>-0.944192065363346</Ypos>
 <Xzoom>256</Xzoom>
@@ -120,7 +120,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1749.40118%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1760.26784%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.562625184351083</Xpos>
 <Ypos>-0.64303398167477</Ypos>
 <Xzoom>64</Xzoom>
@@ -128,7 +128,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1749.40118%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1760.26784%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.657525510204081</Xpos>
 <Ypos>-0.416485507246376</Ypos>
 <Xzoom>64</Xzoom>
@@ -136,7 +136,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1749.40118%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1760.26784%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.529910340601083</Xpos>
 <Ypos>-0.66778109150136</Ypos>
 <Xzoom>256</Xzoom>
@@ -207,11 +207,14 @@ static public void MakeColors()
 	if (done) return;
 	done = true;
 	Random r = new Random(2);
-	for (int i = 0; i &#60; 64;i++)
+	for (int i = 0; i &#60;= 64;i++)
 	{
 		c[i] = Color.FromArgb(0,0,0);
 	}
-	c[64] = Color.FromArgb(0,0,255);
+	for (int i = 64; i &#60;= 64;i++)
+	{
+		c[i] = Color.FromArgb(0,0,255);
+	}
 }</item>
 </SOAP-ENC:Array>
 <SOAP-ENC:Array id="ref-19" SOAP-ENC:arrayType="xsd:anyType[1]">

@@ -52,6 +52,7 @@ namespace Fractals
             InitializeComponent();
 			setDlg.ViewChanged += new EventHandlerNoArg(RefreshImage);
 			MouseWheel += new MouseEventHandler (picture_MouseWheel);
+            ClientSize = new Size(512,512);
 		}
 
 		
@@ -130,7 +131,7 @@ namespace Fractals
 // MainForm
 // 
             this.AutoScaleBaseSize = new System.Drawing.Size(7, 19);
-            this.ClientSize = new System.Drawing.Size(549, 504);
+            this.ClientSize = new System.Drawing.Size(512, 512);
             this.MinimumSize = new System.Drawing.Size(140, 146);
             this.Name = "MainForm";
             this.Text = "Fractals 0.5 BETA";

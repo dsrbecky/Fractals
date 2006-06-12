@@ -13,9 +13,8 @@ namespace Fractals
 {
 	public class DataGenerator
 	{
-        Bitmap emptyBitmap = new Bitmap(Fragment.FragmentSize+1, Fragment.FragmentSize+1, PixelFormat.Format32bppRgb);
-
         public bool debugMode = false;
+        public bool UseDirectX = true;
 
         [DllImport("kernel32.dll")]
         private static extern int QueryPerformanceFrequency(out long frequency);
@@ -46,16 +45,70 @@ namespace Fractals
 
         public bool abortFlag = false;
 
-        ImageAttributes imageAttributes = new ImageAttributes();
+        struct BitmapCacheItem {
+            public Bitmap bitmap;
+            public int x;
+            public int y;
+        }
 
-        const int fragmentsToDisponseCount = 0;//10000;
-        System.Collections.Queue fragmentsToDisponse = new System.Collections.Queue(fragmentsToDisponseCount * 4);
+        class BitmapCache {
+            const int cacheWidth = 15;
+            const int cachesCount = 8;
+            const int BitmapSize = Fragment.BitmapSize;
 
-        //public Fragment root = new Fragment();
-		//public double minX = -2d;
-		//public double minY = -2d;
-		//public double size = 4;
-		//public bool hasExPalette = false;  // TRUE - data use 2 bytes; FALSE - data use 1 byte
+            const int cacheSizex = cacheWidth * cacheWidth * cachesCount;
+            public const int cachePitch = cacheWidth * BitmapSize;
+            
+            Bitmap[] caches = new Bitmap[cachesCount];
+            Fragment[] parentFragment = new Fragment[cacheSizex];
+
+            public int nextCacheIndex = 0;
+
+            public BitmapCache()
+            {
+                for (int i = 0; i < cachesCount; i++) {
+                    caches[i] = new Bitmap(cacheWidth * BitmapSize,
+                                           cacheWidth * BitmapSize,
+                                           PixelFormat.Format32bppPArgb);
+                }
+            }
+
+            public void ReleaseCache(Fragment fragment) 
+            {
+                if (fragment.bitmapID != -1) {
+                    parentFragment[fragment.bitmapID] = null;
+                    fragment.bitmapID = -1;
+                }
+            }
+
+            public BitmapCacheItem AllocateNew(Fragment fragment)
+            {
+                int index = nextCacheIndex;
+                if (parentFragment[index] != null) {
+                    parentFragment[index].bitmapID = -1;
+                }
+                parentFragment[index] = fragment;
+                parentFragment[index].bitmapID = index;
+
+                nextCacheIndex = (nextCacheIndex + 1)%cacheSizex;
+                //System.Diagnostics.Debug.WriteLine("Bitmap cached: ID=" + (index).ToString());
+
+                return this[index];
+            }
+
+            public BitmapCacheItem this [int bitmapID] {
+                get {
+                    BitmapCacheItem ret;
+                    
+                    ret.bitmap = caches[bitmapID / (cacheWidth * cacheWidth)];
+                    ret.x = (bitmapID % cacheWidth) * BitmapSize; 
+                    ret.y = ((bitmapID % (cacheWidth * cacheWidth)) / cacheWidth) * BitmapSize;
+
+                    return ret;
+                }
+            }
+        }
+        BitmapCache cache = new BitmapCache();
 
 		public DataGenerator(dlgtGetIndex functionGetIndex, Color[] palette)
 		{
@@ -63,12 +116,6 @@ namespace Fractals
             this.palette = new Color[256];
             for (int i = 0; i < 256; i++) this.palette[i] = Color.Black;
             palette.CopyTo(this.palette, 0);
-            emptyBitmap.SetPixel(0,0,Color.Red);
-            emptyBitmap.SetPixel(1,1,Color.Green);
-            emptyBitmap.SetPixel(2,2,Color.Blue);
-            emptyBitmap.SetPixel(3,3,Color.White);
-
-            imageAttributes.SetWrapMode(WrapMode.TileFlipXY);
 		}
 
 		byte GetIndex(double p, double q)
@@ -104,6 +151,10 @@ namespace Fractals
 
 			//Console.WriteLine("     - Updaing: X=" + X.ToString() + " Y=" + Y.ToString() + " size=" + size.ToString());
 
+            int minR, minG, minB;
+            minR = minG = minB = 256;
+            int maxR, maxG, maxB;
+            maxR = maxG = maxB = 0;
 			f.allTheSame = true;
 			uint first = GetColor4(X, Y, size);
 
@@ -115,85 +166,67 @@ namespace Fractals
 						Y+y*size,
 						size);
 					f.data[(x + Fragment.FragmentSize*y)/4] = color4;
-					if (color4 != first) f.allTheSame = false;
+
+                    for (int i = 0; i <= 24; i += 8) {
+                        minR = Math.Min(minR, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].R);
+                        minG = Math.Min(minG, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].G);
+                        minB = Math.Min(minB, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].B);
+
+                        maxR = Math.Max(maxR, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].R);
+                        maxG = Math.Max(maxG, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].G);
+                        maxB = Math.Max(maxB, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].B);
+                    }
+					//if (color4 != first) f.allTheSame = false;
                     //if (Math.Abs(color4 - first) > 5) f.allTheSame = false;
 				}
 			}
-			f.done = 0xFFFF;
+            int AAdiff = 5;
+            f.allTheSame = ((maxR - minR) < AAdiff) && ((maxG - minG) < AAdiff) && ((maxB - minB) < AAdiff);
 
-			// Update
-		/*	if ((DateTime.Now.Ticks - lastUpdate.Ticks)/10000 > UpdateRate)
-			{
-				//_Update();
-				lastUpdate = DateTime.Now;
-			}*/
+			f.done = 0xFFFF;
 		}
 
 		unsafe void UpdateBmp(Fragment f, int depth)
 		{
-			if (f.bitmap != null) return;
+            if (f.bitmapID != -1) return;
 
-			f.bitmap = new Bitmap(Fragment.FragmentSize, Fragment.FragmentSize, PixelFormat.Format32bppRgb);
-			BitmapData bmpData = f.bitmap.LockBits(new Rectangle(0,0,Fragment.FragmentSize, Fragment.FragmentSize),ImageLockMode.WriteOnly,PixelFormat.Format32bppArgb);
-			//f.bitmap = new Bitmap(Fragment.FragmentSize+1, Fragment.FragmentSize+1, PixelFormat.Format32bppRgb);
-			//BitmapData bmpData = f.bitmap.LockBits(new Rectangle(0,0,Fragment.FragmentSize+1, Fragment.FragmentSize+1),ImageLockMode.WriteOnly,PixelFormat.Format32bppArgb);
+			Bitmap bitmap = new Bitmap(Fragment.BitmapSize, Fragment.BitmapSize, PixelFormat.Format32bppRgb);
+			BitmapData bmpData = bitmap.LockBits(new Rectangle(0,0,Fragment.BitmapSize, Fragment.BitmapSize),ImageLockMode.WriteOnly,PixelFormat.Format32bppArgb);
 			UInt32* ptr = (UInt32*) bmpData.Scan0.ToPointer();
-			for(int y = 0;y < Fragment.FragmentSize;y += 1)
+			for(int y = 0;y < Fragment.BitmapSize;y += 1)
 			{
-				for(int x = 0;x < Fragment.FragmentSize;x += 1)
+				for(int x = 0;x < Fragment.BitmapSize;x += 1)
 				{
                     uint k;
                     if (debugMode) {
                         k = (uint)(16*depth)*0x100;
+                        //k += ((x+y)%2 == 0)?0x7Fu:0;
+                        //k += ((x+y)%4 == 0)?0x7Fu:0;
                     } else {
                         k = 0;
+                    }                    
+
+					if (x == Fragment.FragmentSize)	{
+						*ptr = *(ptr-1); ptr++;
+					} else if (y == Fragment.FragmentSize) {
+						*ptr = *(ptr-Fragment.BitmapSize); ptr++;
+					} else {
+                        *ptr = k + (uint)GetColorAA(f, x, y, 3).ToArgb(); ptr++;
                     }
-
-                    *ptr = k + (uint)GetColorAA(f, x, y, 0).ToArgb();ptr++;
-					/*if (x == Fragment.FragmentSize)
-					{
-						*ptr = *(ptr-1);
-						ptr++;
-						continue;
-					}
-					if (y == Fragment.FragmentSize)
-					{
-						*ptr = *(ptr-Fragment.FragmentSize-1);ptr++;
-						*ptr = *(ptr-Fragment.FragmentSize-1);ptr++;
-						*ptr = *(ptr-Fragment.FragmentSize-1);ptr++;
-						*ptr = *(ptr-Fragment.FragmentSize-1);ptr++;
-						continue;
-					}*/
-
-					/*uint color4;
-					color4 = f.data[(x + Fragment.FragmentSize*y)/4];
-					uint k;
-                    if (debugMode) {
-                        k = (uint)(16*depth)*0x100;
-                    } else {
-                        k = 0;
-                    }
-
-                    *ptr = k + (uint)palette[(color4 & 0xFF000000) / 0x01000000].ToArgb();ptr++;
-					*ptr = k + (uint)palette[(color4 & 0x00FF0000) / 0x00010000].ToArgb();ptr++;
-					*ptr = k + (uint)palette[(color4 & 0x0000FF00) / 0x00000100].ToArgb();ptr++;
-					*ptr = k + (uint)palette[(color4 & 0x000000FF) / 0x00000001].ToArgb();ptr++;*/
-
-                    /*
-                    *ptr = 0xFF000000 + k + (color4 & 0xFF000000) / 0x01000000;ptr++;
-					*ptr = 0xFF000000 + k + (color4 & 0x00FF0000) / 0x00010000;ptr++;
-					*ptr = 0xFF000000 + k + (color4 & 0x0000FF00) / 0x00000100;ptr++;
-					*ptr = 0xFF000000 + k + (color4 & 0x000000FF) / 0x00000001;ptr++;
-					*/
 				}
 			}
-			f.bitmap.UnlockBits(bmpData);
-            fragmentsToDisponse.Enqueue(f);
+			bitmap.UnlockBits(bmpData);
+
+            // save to cache
+            BitmapCacheItem c = cache.AllocateNew(f);
+            Graphics.FromImage(c.bitmap).DrawImage(bitmap, c.x, c.y);
+            bitmap.Dispose();
+            bitmap = null;
 		}
 
         Color GetColorAA(Fragment f, int x, int y, int levelsOfAA)
         {
-            if (levelsOfAA <= 0) {
+            if (levelsOfAA <= 0 || !doAntiAliasing) {
                 return GetColor(f,x,y);
             }
 
@@ -213,7 +246,7 @@ namespace Fractals
                     srcF = f.childRB;
                 }
             }
-            if (srcF != null) {
+            if (srcF != null && srcF.done != 0) {
                 Color color1 = GetColorAA(srcF, srcX + 0, srcY + 0, levelsOfAA - 1);
                 Color color2 = GetColorAA(srcF, srcX + 0, srcY + 1, levelsOfAA - 1);
                 Color color3 = GetColorAA(srcF, srcX + 1, srcY + 0, levelsOfAA - 1);
@@ -223,7 +256,7 @@ namespace Fractals
                 int g = (color1.G + color2.G + color3.G + color4.G) / 4;
                 int b = (color1.B + color2.B + color3.B + color4.B) / 4;
 
-                return Color.FromArgb(255,g,b);
+                return Color.FromArgb(r,g,b);
             } else {
                 return GetColor(f,x,y);
             }
@@ -237,18 +270,6 @@ namespace Fractals
             return palette[(color4 & (0xFF << (8 * (3 - x%4)))) / (0x01 << (8 * (3 - x%4)))];
         }
 
-
-		/*static void UpdateFragmentsRecrusivly (Fragment f, int levels)
-		{
-			if (f == null) return;
-			UpdateFragment(f,0);
-			if (levels != 0)
-			{
-				for(int i = 0; i < 4; i++)
-					UpdateFragmentsRecrusivly (f.childs[i], levels - 1);
-			}
-		}*/
-
         long     timeToAbort;
         bool     abortAllowed;
 
@@ -257,6 +278,8 @@ namespace Fractals
 
         bool     simulation;
         Graphics g;
+
+        bool     doAntiAliasing;
 
         Matrix extraTransformation;
 
@@ -285,53 +308,68 @@ namespace Fractals
 
             //if (!new RectangleF((float)renderX, (float)renderY, (float)renderSize, (float)renderSize).IntersectsWith(new RectangleF(-1f,-1f,2,2))) return;
 
-            bool lastRecrusion = (renderSize <= terminalSize);
-            bool skipDrawing   = (renderSize > initalSize);
+            bool lastRecrusion = (renderSize < terminalSize * 2);
+            bool skipDrawing   = (renderSize >= initalSize * 2);
+            bool invisible     = (renderSize < visibleSize);
+            bool lastVisible   = (renderSize < visibleSize * 2) && !invisible;
 
             UpdateFragment(f, dataX, dataY, dataSize / Fragment.FragmentSize);
+
             if (!f.allTheSame || (renderSize > 8*terminalSize))
                 if (!lastRecrusion)
                     if (!f.HasAllChilds)
                         f.MakeChilds();
 
-            if ((!f.HasAllChilds || lastRecrusion || abortAllowed) && !skipDrawing)
+            // Anti-aliasing - do all subpixels before
+            if (lastVisible && !lastRecrusion) {
+                RenderFragmentsRecrusivly (f.childLT, dataX              , dataY              , dataSize/2, renderX                , renderY                , renderSize/2, depht + 1, !completlyInside);
+			    RenderFragmentsRecrusivly (f.childRT, dataX + dataSize/2 , dataY              , dataSize/2, renderX + renderSize/2 , renderY                , renderSize/2, depht + 1, !completlyInside);
+			    RenderFragmentsRecrusivly (f.childLB, dataX              , dataY + dataSize/2 , dataSize/2, renderX                , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
+			    RenderFragmentsRecrusivly (f.childRB, dataX + dataSize/2 , dataY + dataSize/2 , dataSize/2, renderX + renderSize/2 , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
+
+                cache.ReleaseCache(f); //Force bitmap recreation to apply AA
+            }
+
+            if (abortAllowed && GetTicks() > timeToAbort) return;
+
+            if ((!f.HasAllChilds || lastRecrusion || abortAllowed) && (!skipDrawing || lastVisible) && !invisible)
             {
+                cache.ReleaseCache(f);
                 UpdateBmp(f, depht);
                 if (simulation == false) {
-                    g.DrawImage(/*emptyBitmap,//*/f.bitmap,
-                                //new RectangleF((float)renderX, (float)renderY, (float)renderSize, (float)renderSize),
+                    BitmapCacheItem c = cache[f.bitmapID];
+                    g.DrawImage(c.bitmap,
                                 new PointF[] {new PointF( (float)renderX, (float)renderY ),
                                               new PointF( (float)renderX + (float)renderSize, (float)renderY ),
                                               new PointF( (float)renderX, (float)renderY + (float)renderSize )},
-                                new RectangleF(0, 0, Fragment.FragmentSize, Fragment.FragmentSize),
-                                GraphicsUnit.Pixel,
-                                imageAttributes);
-                    //g.DrawRectangle(Pens.Blue,(float)renderX, (float)renderY, (float)renderSize, (float)renderSize);
-
-                    //System.Diagnostics.Debug.WriteLine(fragmentsToDisponse.Count.ToString());
-                    while (fragmentsToDisponse.Count > fragmentsToDisponseCount) {
-                        Fragment fragment = (Fragment)fragmentsToDisponse.Dequeue();
-                        fragment.bitmap.Dispose();
-                        fragment.bitmap = null;
-                    }
+                                new RectangleF(c.x, c.y, Fragment.FragmentSize, Fragment.FragmentSize),
+                                GraphicsUnit.Pixel);
                 }
             }
             if (lastRecrusion) return;
-            RenderFragmentsRecrusivly (f.childLT, dataX              , dataY              , dataSize/2, renderX                , renderY                , renderSize/2, depht + 1, !completlyInside);
-			RenderFragmentsRecrusivly (f.childRT, dataX + dataSize/2 , dataY              , dataSize/2, renderX + renderSize/2 , renderY                , renderSize/2, depht + 1, !completlyInside);
-			RenderFragmentsRecrusivly (f.childLB, dataX              , dataY + dataSize/2 , dataSize/2, renderX                , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
-			RenderFragmentsRecrusivly (f.childRB, dataX + dataSize/2 , dataY + dataSize/2 , dataSize/2, renderX + renderSize/2 , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
-		}
+
+            // Normal - do subpixels after
+            if (!lastVisible) {
+                RenderFragmentsRecrusivly (f.childLT, dataX              , dataY              , dataSize/2, renderX                , renderY                , renderSize/2, depht + 1, !completlyInside);
+			    RenderFragmentsRecrusivly (f.childRT, dataX + dataSize/2 , dataY              , dataSize/2, renderX + renderSize/2 , renderY                , renderSize/2, depht + 1, !completlyInside);
+			    RenderFragmentsRecrusivly (f.childLB, dataX              , dataY + dataSize/2 , dataSize/2, renderX                , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
+			    RenderFragmentsRecrusivly (f.childRB, dataX + dataSize/2 , dataY + dataSize/2 , dataSize/2, renderX + renderSize/2 , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
+            }		
+        }
 
         static Bitmap tmpImage = new Bitmap(2048, 1024);
         static Graphics tmpG = Graphics.FromImage(tmpImage);
 
         double compulsorySize = 1 / 1d;
+        double visibleSize;
 
         long startTime;
 
         public long Render(View v, Graphics destGraphics, int w, int h, double FPS)
 		{
+            visibleSize = (((double)Fragment.FragmentSize*2)/(double)Math.Min(w,h));
+            System.Diagnostics.Debug.WriteLine("visibleSize = " + visibleSize.ToString());
+
             g = destGraphics;
             //g = tmpG;
             startTime = GetTicks();
@@ -377,9 +415,11 @@ namespace Fractals
 
                 /// Primary draw - must finish
                 /// --------------------------
-                abortAllowed = false;
-                initalSize   = double.MaxValue;
-                terminalSize = compulsorySize;
+                abortAllowed   = false;
+                doAntiAliasing = false;
+                simulation     = false;
+                initalSize     = double.MaxValue;
+                terminalSize   = compulsorySize;
 
                 RenderFragmentsRecrusivly(data.root,
                                       data.minX, data.minY, data.size,
@@ -395,13 +435,31 @@ namespace Fractals
                     compulsorySize *= 2;
                 }
 
+                /*
+                /// Anti-alias primary draw
+                /// --------------------------
+                abortAllowed   = true;
+                doAntiAliasing = true;
+                simulation     = true;
+                initalSize     = double.MaxValue;
+                terminalSize   = compulsorySize;
+
+                RenderFragmentsRecrusivly(data.root,
+                                      data.minX, data.minY, data.size,
+                                      (-v.Xpos + data.minX) * v.Xzoom, (-v.Ypos + data.minY) * v.Xzoom, 2 * v.Xzoom * data.size / 2,
+                                      0, true);*/
+
                 /// Multiple passes to incerase quality
                 /// ----------------------------------
                 while (finishedInTime && !abortFlag)
                 {
-                    abortAllowed = true;
-                    initalSize = terminalSize; // Start where we finished
-                    terminalSize = initalSize / 2d; // Do one more level
+                    abortAllowed   = true;
+                    doAntiAliasing = true;
+                    simulation     = false;
+                    initalSize     = terminalSize; // Start where we finished
+                    terminalSize   = initalSize / 2d; // Do one more level
+
+                    if (terminalSize < visibleSize/4) break;
 
                     RenderFragmentsRecrusivly(data.root,
                                         data.minX, data.minY, data.size,
@@ -410,7 +468,7 @@ namespace Fractals
 
                     finishedInTime = GetTicks() < timeToAbort;
 
-                    if (finishedInTime && FPS != 0)
+                    if (finishedInTime && FPS != 0 && !(terminalSize < visibleSize))
                     {
                         // We have drawn more in time
                         // -> try to do the same amount next time
@@ -437,92 +495,12 @@ namespace Fractals
             //for (int j = 0; j < 1; j++) gr.DrawImage(tmpImage, 0, 0);
 
             long miliseconds = GetTicks() - startTime;
-            System.Diagnostics.Debug.WriteLine("Time to draw: " + miliseconds.ToString() +
-                                               " quality " + (1d/compulsorySize).ToString());
+            //System.Diagnostics.Debug.WriteLine("Time to draw: " + miliseconds.ToString() +
+            //                                   " quality " + (1d/compulsorySize).ToString());
             
             //destGraphics.DrawImage(tmpImage,0,0);
 
             return miliseconds;
         }
-
-        bool IsOutOfFrustum(double x, double y, double size, PointF[] frustum)
-        {
-            return false;
-            bool outside;
-
-			/////////////////////////////////////////////////////
-			/// Test frustum aginst box's planes
-			/////////////////////////////////////////////////////
-			
-			// Left
-			outside = true;
-			for (int i = 0; i < 4; i++)
-				if (frustum[i].X > x)
-					outside = false;
-			if (outside) return true;
-
-			// Right
-			outside = true;
-			for (int i = 0; i < 4; i++)
-				if (frustum[i].X < x + size)
-					outside = false;
-			if (outside) return true;
-
-			// Top
-			outside = true;
-			for (int i = 0; i < 4; i++)
-				if (frustum[i].Y > y)
-					outside = false;
-			if (outside) return true;
-
-			// Buttom
-			outside = true;
-			for (int i = 0; i < 4; i++)
-				if (frustum[i].Y < y + size)
-					outside = false;
-			if (outside) return true;
-			
-			// Approximatly inside
-			return false;
-/*
-			////////////////////////////////////////
-			/// Test box aginst frustum planes
-			////////////////////////////////////////
-			PointF[] coner = new PointF[] {new PointF(x,y), new PointF(x+size,y), new PointF(x,y+size), new PointF(x+size,y+size)};
-			//PointF[] midpoint = new PointF[] {new PointF(x+w/2,y+h/2)};
-			transform.TransformPoints(coner);
-
-			// Left
-			outside = true;
-			for (int i = 0; i < 4; i++)
-				if (coner[i].X > -1)
-					outside = false;
-			if (outside) return true;
-
-			// Right
-			outside = true;
-			for (int i = 0; i < 4; i++)
-				if (coner[i].X < 1)
-					outside = false;
-			if (outside) return true;
-
-			// Top
-			outside = true;
-			for (int i = 0; i < 4; i++)
-				if (coner[i].Y > -1)
-					outside = false;
-			if (outside) return true;
-
-			// Buttom
-			outside = true;
-			for (int i = 0; i < 4; i++)
-				if (coner[i].Y < 1)
-					outside = false;
-			if (outside) return true;
-
-
-			// Approximatly inside
-			return false;*/
-		}
     }
 }

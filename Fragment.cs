@@ -4,8 +4,9 @@ using System.Drawing;
 namespace Fractals
 {
 	public unsafe class Fragment
-	{
+	{       
 		public const int FragmentSize = 16;
+        public const int BitmapSize = Fragment.FragmentSize + 1;
 		// Memory usage: FragmentSize*FragmentSize*[2-ExPalette]
 
 		//public Fragment[] childs = new Fragment[4];
@@ -21,7 +22,9 @@ namespace Fractals
 		public uint[] data;
 		public ushort done = 0; // map of 4x4 done bits
 		// public int depth = 0; // -1 means [-2,2]; 0 means [-1,1]; 1 means [-0.5,0.5]; etc;
-		public Bitmap bitmap;
+		//public Bitmap bitmap;
+        public int bitmapID = -1;
+
 
 		public bool allTheSame;
 
