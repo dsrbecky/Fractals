@@ -22,6 +22,7 @@ namespace Fractals
 		public event EventHandlerNoArg ViewChanged;
 
 		public Settings settings;
+		public bool suspendUpdate = false;
 
 		Hashtable datamap;
 		Hashtable codemap;
@@ -1163,6 +1164,7 @@ namespace Fractals
 		void LoadFrom(string filename)
 		{
 			if (!File.Exists(filename)) return;
+			suspendUpdate = true;
 			Stream stream = File.Open(filename, FileMode.Open);
 			SoapFormatter formatter = new SoapFormatter();
 			settings = (Settings)formatter.Deserialize(stream);
@@ -1182,6 +1184,7 @@ namespace Fractals
 			TabCustomCmbBox.Text = settings.lastCustomCode;
 			TabSaveCmbBox.Text = settings.lastSavingRule;
 			TabCommentsTextbox.Text = settings.commentes;
+			suspendUpdate = false;
 		}
 
 		private void MainCmbBox_DropDown(object sender, System.EventArgs e)
@@ -1326,14 +1329,14 @@ namespace Fractals
 
 		#region Code Compiler
 
-		private Algorihtm.dlgtGetColor getColorDelegate;
-		public Algorihtm.dlgtGetColor GetColorDelegate
+		private DataGenerator.dlgtGetIndex getColorIndex;
+		public DataGenerator.dlgtGetIndex GetColorIndex
 		{
 			get
 			{
 				if (method == null)
 					UpdateMethod();
-				return getColorDelegate;
+				return getColorIndex;
 			}
 		}
 		private MethodInfo method;
@@ -1356,6 +1359,7 @@ namespace Fractals
 
 		private void UpdateMethod()
 		{
+			if (suspendUpdate) return;
 			// Make source code
 			string tmpCode = "using System;using System.Drawing;using System.Drawing.Imaging;" +
 				             "namespace Fractals {class Main{" +
@@ -1384,7 +1388,7 @@ namespace Fractals
 			{ // Succes
 				Type main = res.CompiledAssembly.GetType("Fractals.Main");
 				method = main.GetMethod("GetColor");
-				getColorDelegate = (Algorihtm.dlgtGetColor)Delegate.CreateDelegate(typeof(Algorihtm.dlgtGetColor),method);
+				getColorIndex = (DataGenerator.dlgtGetIndex)Delegate.CreateDelegate(typeof(DataGenerator.dlgtGetIndex),method);
 			}
 		}	
 		

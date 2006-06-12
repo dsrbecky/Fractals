@@ -24,6 +24,8 @@ namespace Fractals
 		public object BmpSyncRoot = new object();
 		float zoomSpeed = 1;
 
+		DataGenerator dataGenerator;
+
 		private System.Windows.Forms.MainMenu mainMenu;
 		private System.Windows.Forms.MenuItem menuItemSave;
 		private System.Windows.Forms.MenuItem menuItemSettings;
@@ -191,6 +193,12 @@ namespace Fractals
 
 		public void RefreshImage()
 		{
+			if (setDlg.GetColorIndex != null)
+				dataGenerator = new DataGenerator(setDlg.GetColorIndex);
+			GC.Collect();
+			Invalidate();
+			return;
+
 			lock (BmpSyncRoot)
 				if (refreshThread != null)
 				{
@@ -209,7 +217,7 @@ namespace Fractals
 		}
 		public void ThreatRefreshEnteryPoint()
 		{
-			Fractals.Algorihtm.CalcImage(bitmap, BmpSyncRoot, setDlg.view, new EventHandlerNoArg(IvalidateMe));
+			//Fractals.Algorihtm.CalcImage(bitmap, BmpSyncRoot, setDlg.view, new EventHandlerNoArg(IvalidateMe));
 			System.Diagnostics.Debug.WriteLine("Refresh finished");
 		}
 
@@ -255,7 +263,9 @@ namespace Fractals
 
 		private void Form1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
 		{
-			new Rendrer(Algorihtm.d).Render(setDlg.view, e.Graphics, ClientRectangle.Width, ClientRectangle.Height);
+			if (dataGenerator != null)
+				dataGenerator.Render(setDlg.view,e.Graphics,ClientRectangle.Width, ClientRectangle.Height);
+			//new Rendrer(Algorihtm.d).Render(setDlg.view, e.Graphics, ClientRectangle.Width, ClientRectangle.Height);
 			/*
 			lock (BmpSyncRoot)
 			{

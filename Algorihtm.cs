@@ -12,70 +12,15 @@ namespace Fractals
 
 		public static float minSize;
 
-		public static TempData d;
+//		public static TempData d;
 
 		public static EventHandlerNoArg _Update;
 
-		public delegate void dlgtGetColor(double p, double q,out double r,out double g,out double b);
 
-		static byte GetIndex(double p, double q)
-		{
-			double r,g,index;
-			MainForm.setDlg.GetColorDelegate (p,q,out r,out g,out index);
-			return (byte) Math.Min(255,Math.Max(0,index));
-		}
-		
-		static uint GetColor4(double p, double q, double width)
-		{
-			uint color4;
-			color4 = 0;
 
-			color4 += GetIndex(p,q);
-			p += width;
-			color4 *= 0x100;
-			color4 += GetIndex(p,q);
-			p += width;
-			color4 *= 0x100;
-			color4 += GetIndex(p,q);
-			p += width;
-			color4 *= 0x100;
-			color4 += GetIndex(p,q);
 
-			return color4;
-		}
 
-		public static void UpdateFragment(Fragment f, double X, double Y, double size)
-		{
-			if (f.done == 0xFFFF) return;
-			//if (Rendrer.IsOutOfFrustum((float)X,(float)Y,(float)size,(float)size)) return;
-
-			//Console.WriteLine("     - Updaing: X=" + X.ToString() + " Y=" + Y.ToString() + " size=" + size.ToString());
-
-			f.allTheSame = true;
-			uint first = GetColor4(X, Y, size);
-
-			for(int y = 0;y < Fragment.FragmentSize;y += 1)
-			{
-				for(int x = 0;x < Fragment.FragmentSize;x += 4)
-				{
-					uint color4 = GetColor4(X+x*size,
-						                    Y+y*size,
-						                    size);
-					f.data[(x + Fragment.FragmentSize*y)/4] = color4;
-					if (color4 != first) f.allTheSame = false;
-				}
-			}
-			f.done = 0xFFFF;
-
-			// Update
-			if ((DateTime.Now.Ticks - lastUpdate.Ticks)/10000 > UpdateRate)
-			{
-				//_Update();
-				lastUpdate = DateTime.Now;
-			}
-		}
-
-		static void UpdateFragmentsRecrusivly (Fragment f, int levels, double x, double y, double size)
+		/*static void UpdateFragmentsRecrusivly (Fragment f, int levels, double x, double y, double size)
 		{
 			if (f == null) return;
 			UpdateFragment(f,x,y,size);
@@ -86,9 +31,9 @@ namespace Fractals
 				UpdateFragmentsRecrusivly (f.childs[2], levels - 1, x, y + size*(Fragment.FragmentSize/2), size/2);
 				UpdateFragmentsRecrusivly (f.childs[3], levels - 1, x + size*(Fragment.FragmentSize/2), y + size*(Fragment.FragmentSize/2), size/2);
 			}
-		}
+		}*/
 
-		static void AddChildsRecrusivly (Fragment f,int obligations, double x, double y, double size)
+		/*static void AddChildsRecrusivly (Fragment f,int obligations, double x, double y, double size)
 		{
 			if (f.allTheSame && obligations <= 0) return;
 			//if (size < minSize) return;
@@ -108,9 +53,9 @@ namespace Fractals
 						case 3:AddChildsRecrusivly (f.childs[3], obligations - 1, x + size*(Fragment.FragmentSize/2), y + size*(Fragment.FragmentSize/2), size/2);break;
 					}
 				}
-		}
+		}*/
 
-		public static unsafe void CalcImage(Bitmap bmp,object BmpSyncRoot,View v,EventHandlerNoArg Update)
+		/*public static unsafe void CalcImage(Bitmap bmp,object BmpSyncRoot,View v,EventHandlerNoArg Update)
 		{
 			DateTime begin;
 			DateTime beginTotal = DateTime.Now;
@@ -145,6 +90,6 @@ namespace Fractals
 				begin = DateTime.Now;
 			}
 			Console.WriteLine(" * done in: " + ((DateTime.Now.Ticks-beginTotal.Ticks)/10000).ToString() + "ms");
-		}
+		}*/
 	}
 }

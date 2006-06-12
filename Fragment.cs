@@ -8,7 +8,12 @@ namespace Fractals
 		public const int FragmentSize = 4;
 		// Memory usage: FragmentSize*FragmentSize*[2-ExPalette]
 
-		public Fragment[] childs = new Fragment[4];
+		//public Fragment[] childs = new Fragment[4];
+
+		public Fragment childLT;
+		public Fragment childRT;
+		public Fragment childLB;
+		public Fragment childRB;
 
 		// NOTE: Fragmet always has half the area of parent
 		// NOTE: Fist byte in chunk is always copy of parent byte (+25% memory usage)
@@ -26,16 +31,7 @@ namespace Fractals
 
 		//public Fragment parent = null;
 
-		public int Count()
-		{
-			int result = 1;
-			for(int i = 0; i < 4; i++)
-				if (childs[i] != null)
-					result += childs[i].Count();
-			return result;
-		}
-
-		public int SizeOf()
+	/*	public int SizeOf()
 		{
 			int result = 0;
 			result += 7*sizeof(int);
@@ -48,7 +44,7 @@ namespace Fractals
 				if (childs[i] != null)
 					result += childs[i].SizeOf();
 			return result;
-		}
+		}*/
 
 		/*public Fragment(bool _hasExPalette,double _srcX,double _srcY,double _srcWidth)
 		{
@@ -60,44 +56,44 @@ namespace Fractals
 			data = new UInt32[FragmentSize*FragmentSize/(hasExPalette?2:4)];
 		}*/
 
-		public Fragment(bool hasExPalette)
+		public Fragment()//bool hasExPalette)
 		{
 			//hasExPalette = _hasExPalette;
 		
-			data = new UInt32[FragmentSize*FragmentSize/(hasExPalette?2:4)];
+			data = new UInt32[FragmentSize*FragmentSize/4];
 		}
 
 		public void MakeChilds()
 		{
-			MakeChild(0);
-			MakeChild(1);
-			MakeChild(2);
-			MakeChild(3);
+			MakeChildLT();
+			MakeChildRT();
+			MakeChildLB();
+			MakeChildRB();
 		}
 
-		public void MakeChild(int i)
+		/*public void MakeChild(int i)
 		{
 			//childs[i] = new Fragment(hasExPalette);
 			// TODO - lame
 			childs[i] = new Fragment(false);
-		}
+		}*/
 
-/*
-		public void MakeChild0()
-		{childs[0] = new Fragment(hasExPalette, srcX, srcY, srcWidth/2);}
 
-		public void MakeChild1()
-		{childs[1] = new Fragment(hasExPalette, srcX + srcWidth*(FragmentSize/2), srcY, srcWidth/2);}
+		public void MakeChildLT()
+		{childLT = new Fragment();}
 
-		public void MakeChild2()
-		{childs[2] = new Fragment(hasExPalette, srcX, srcY + srcWidth*(FragmentSize/2), srcWidth/2);}
+		public void MakeChildRT()
+		{childRT = new Fragment();}
 
-		public void MakeChild3()
-		{childs[3] = new Fragment(hasExPalette, srcX + srcWidth*(FragmentSize/2), srcY + srcWidth*(FragmentSize/2), srcWidth/2);}
-	*/
+		public void MakeChildLB()
+		{childLB = new Fragment();}
+
+		public void MakeChildRB()
+		{childRB = new Fragment();}
+	
 	}
 
-	public class TempData
+/*	public class TempData
 	{
 		public Fragment root;
 		public double minX;
@@ -108,7 +104,7 @@ namespace Fractals
 
 		public TempData()
 		{
-			root = new Fragment(false);
+			root = new Fragment();
 			minX = -2d;
 			minY = -2d;
 			size = 4d;
@@ -119,7 +115,7 @@ namespace Fractals
 		public void ExtendRoot()
 		{
 			// TODO: Copy data of root to new root
-/*			Fragment newRoot = new Fragment(root.hasExPalette, root.depth-1);
+			Fragment newRoot = new Fragment(root.hasExPalette, root.depth-1);
 
 			newRoot.childLeftTop = new Fragment(root.hasExPalette, root.depth);
 			newRoot.childLeftTop.childRightButtom = root.childLeftTop;
@@ -133,7 +129,7 @@ namespace Fractals
 			newRoot.childRightButtom = new Fragment(root.hasExPalette, root.depth);
 			newRoot.childRightButtom.childLeftTop = root.childRightButtom;
 
-            root = newRoot;*/
+            root = newRoot;
 		}
-	}
+	}*/
 }

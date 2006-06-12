@@ -117,6 +117,16 @@
                     BuildAction = "None"
                 />
                 <File
+                    RelPath = "DataGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "Fragment.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "InputBox.cs"
                     SubType = "Form"
                     BuildAction = "Compile"
@@ -137,11 +147,6 @@
                     BuildAction = "EmbeddedResource"
                 />
                 <File
-                    RelPath = "Rendrer.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "Settings.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -155,11 +160,6 @@
                     RelPath = "SettingsDlg.resx"
                     DependentUpon = "SettingsDlg.cs"
                     BuildAction = "EmbeddedResource"
-                />
-                <File
-                    RelPath = "TempData.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
                 />
                 <File
                     RelPath = "View.cs"

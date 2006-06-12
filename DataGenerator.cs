@@ -5,20 +5,89 @@ using System.Drawing.Imaging;
 
 namespace Fractals
 {
-	public class Rendrer
+	public class DataGenerator
 	{
-		public static TempData data;
-		public static Graphics g;
-		public static PointF[] frustum = new PointF[4];
-		public static Matrix transform = new Matrix();
+		public delegate void dlgtGetIndex(double p, double q,out double r,out double g,out double b);
+
+		dlgtGetIndex _GetIndex;
+
+		// Data identifiers
+		public Fragment root = new Fragment();
+		public double minX = -2d;
+		public double minY = -2d;
+		public double size = 4;
+		public bool hasExPalette = false;  // TRUE - data use 2 bytes; FALSE - data use 1 byte
+
+		// Temp rendring data
+		Graphics g;
+		PointF[] frustum = new PointF[4];
+		Matrix transform = new Matrix();
+
 		float minSize;
 
-		public Rendrer(TempData _data)
+		public DataGenerator(dlgtGetIndex functionGetIndex)
 		{
-            //data = _data;
+			_GetIndex = functionGetIndex;
 		}
 
-		static unsafe void UpdateBmp(Fragment f, int depth)
+		byte GetIndex(double p, double q)
+		{
+			double r,g,index;
+			_GetIndex (p,q,out r,out g,out index);
+			return (byte) Math.Min(255,Math.Max(0,index));
+		}
+		
+		uint GetColor4(double p, double q, double width)
+		{
+			uint color4;
+			color4 = 0;
+
+			color4 += GetIndex(p,q);
+			p += width;
+			color4 *= 0x100;
+			color4 += GetIndex(p,q);
+			p += width;
+			color4 *= 0x100;
+			color4 += GetIndex(p,q);
+			p += width;
+			color4 *= 0x100;
+			color4 += GetIndex(p,q);
+
+			return color4;
+		}
+
+		void UpdateFragment(Fragment f, double X, double Y, double size)
+		{
+			if (f.done == 0xFFFF) return;
+			//if (IsOutOfFrustum((float)X,(float)Y,(float)size,(float)size)) return;
+
+			//Console.WriteLine("     - Updaing: X=" + X.ToString() + " Y=" + Y.ToString() + " size=" + size.ToString());
+
+			f.allTheSame = true;
+			uint first = GetColor4(X, Y, size);
+
+			for(int y = 0;y < Fragment.FragmentSize;y += 1)
+			{
+				for(int x = 0;x < Fragment.FragmentSize;x += 4)
+				{
+					uint color4 = GetColor4(X+x*size,
+						Y+y*size,
+						size);
+					f.data[(x + Fragment.FragmentSize*y)/4] = color4;
+					if (color4 != first) f.allTheSame = false;
+				}
+			}
+			f.done = 0xFFFF;
+
+			// Update
+		/*	if ((DateTime.Now.Ticks - lastUpdate.Ticks)/10000 > UpdateRate)
+			{
+				//_Update();
+				lastUpdate = DateTime.Now;
+			}*/
+		}
+
+		unsafe void UpdateBmp(Fragment f, int depth)
 		{
 			if (f.bitmap != null) return;
 
@@ -57,6 +126,7 @@ namespace Fractals
 			f.bitmap.UnlockBits(bmpData);
 		}
 
+
 		/*static void UpdateFragmentsRecrusivly (Fragment f, int levels)
 		{
 			if (f == null) return;
@@ -68,46 +138,48 @@ namespace Fractals
 			}
 		}*/
 
-		void RenderFragmentsRecrusivly (Fragment f,float x, float y, float w, float h,int depht)
+		void RenderFragmentsRecrusivly (Fragment f,double x, double y, double size,int depht)
 		{
 			if (f == null) return;
-			if (IsOutOfFrustum(x,y,w,h)) return;
+			if (IsOutOfFrustum(x,y,size)) return;
 
 			//if (f.bitmap == null) return;
-			bool tooSmall = (w < minSize) || (h < minSize);
+			bool tooSmall = (size < minSize);
 
 			/*if (!f.allTheSame)
 				for(int i = 0; i < 4; i++)
 					if (f.childs[i] == null)
 						f.MakeChild(i);*/
-			/*if (!tooSmall)
-				if (!f.allTheSame)
-					f.MakeChilds();*/
+			UpdateFragment(f,x,y,size/Fragment.FragmentSize);
+			if (!f.allTheSame)
+				if (!tooSmall)
+					for(int i = 0; i < 4; i++)
+						if (f.childLT == null)
+							f.MakeChilds();
 			
-			if (f.childs[0] == null || f.childs[1] == null || f.childs[2] == null || f.childs[3] == null || tooSmall)
+			if (f.childLT == null || f.childRT == null || f.childLB == null || f.childRB == null || tooSmall)
 			{
 				//g.FillRectangle(new SolidBrush (Color.Red),x,y,w,h);
 				//g.DrawImage(f.bitmap ,x ,y ,w, h);
                 
-				Algorihtm.UpdateFragment(f,x,y,h/Fragment.FragmentSize);
+				UpdateFragment(f,x,y,size/Fragment.FragmentSize);
 
 				UpdateBmp(f,depht);
-				g.DrawImage(f.bitmap, new RectangleF(x,y,w,h), 
-					        new RectangleF(0,0,Fragment.FragmentSize,Fragment.FragmentSize),
-					        GraphicsUnit.Pixel);
-				//g.DrawImage(f.bitmap,
+				UpdateBmp(root,depht);
+				g.FillRectangle(new SolidBrush(Color.Purple),new RectangleF((float)x,(float)y,(float)size,(float)size));
+				g.DrawImage(f.bitmap, new RectangleF((float)x,(float)y,(float)size,(float)size), 
+							new RectangleF(0,0,Fragment.FragmentSize,Fragment.FragmentSize),
+							GraphicsUnit.Pixel);
 			}
 			if (tooSmall) return;
-			RenderFragmentsRecrusivly (f.childs[0], x      ,      y ,     w/2,     h/2, depht + 1);
-			RenderFragmentsRecrusivly (f.childs[1], x + w/2,      y , w - w/2,     h/2, depht + 1);
-			RenderFragmentsRecrusivly (f.childs[2], x      , y + h/2,     w/2, h - h/2, depht + 1);
-			RenderFragmentsRecrusivly (f.childs[3], x + w/2, y + h/2, w - w/2, h - h/2, depht + 1);
+			RenderFragmentsRecrusivly (f.childLT, x         , y         , size/2, depht + 1);
+			RenderFragmentsRecrusivly (f.childRT, x + size/2, y         , size/2, depht + 1);
+			RenderFragmentsRecrusivly (f.childLB, x         , y + size/2, size/2, depht + 1);
+			RenderFragmentsRecrusivly (f.childRB, x + size/2, y + size/2, size/2, depht + 1);
 		}
 
-		unsafe public void Render(View v, Graphics destGraphic, int w, int h)
+		public void Render(View v, Graphics destGraphic, int w, int h)
 		{
-			if (data==null) data = new TempData();
-
 			//UpdateFragmentsRecrusivly(data.root,-1);
 			g = destGraphic;
 			//g.RotateTransform(45);
@@ -124,27 +196,27 @@ namespace Fractals
 			g.InterpolationMode = InterpolationMode.Bilinear;
 			//g.InterpolationMode = InterpolationMode.NearestNeighbor;
 
-			//g.Clear(Color.White);
+			g.Clear(Color.White);
 			//g.DrawImage(data.root.bitmap ,0 ,0 ,w, h);
 			minSize = (float)(16/v.Xzoom/w);
 
 			g.TranslateTransform(-w/2, -h/2, MatrixOrder.Append);
-			//g.ScaleTransform(0.5f,0.5f, MatrixOrder.Append);
+			g.ScaleTransform(0.5f,0.5f, MatrixOrder.Append);
 			g.TranslateTransform(w/2, h/2, MatrixOrder.Append);
 
 			//lock(data.syncRoot)
-				RenderFragmentsRecrusivly(data.root, -2, -2, 4, 4,0);
+				RenderFragmentsRecrusivly(root, -4, -4, 8,0);
 
 			
 			g.TranslateTransform(-w/2, -h/2, MatrixOrder.Append);
-			//g.ScaleTransform(0.9f,0.9f, MatrixOrder.Append);
+			g.ScaleTransform(0.9f,0.9f, MatrixOrder.Append);
 			g.TranslateTransform(w/2, h/2, MatrixOrder.Append);
 			//g.FillPolygon(new SolidBrush(Color.FromArgb(64,255,0,0)),frustum);
-			//g.DrawLines(new Pen(Color.Red,0),new PointF[] {frustum[0],frustum[1],frustum[1],frustum[2],frustum[2],frustum[3],frustum[3],frustum[0]});
+			g.DrawLines(new Pen(Color.Red,0),new PointF[] {frustum[0],frustum[1],frustum[1],frustum[2],frustum[2],frustum[3],frustum[3],frustum[0]});
 			
 		}
 
-		public void SetFrustum (View v)
+		void SetFrustum (View v)
 		{
 			Matrix inverse = g.Transform.Clone();
 			inverse.Invert();
@@ -152,7 +224,7 @@ namespace Fractals
 			inverse.TransformPoints(frustum);
 		}
 
-		public static bool IsOutOfFrustum (float x, float y, float w, float h)
+		bool IsOutOfFrustum (double x, double y, double size)
 		{
 			bool outside;
 
@@ -170,7 +242,7 @@ namespace Fractals
 			// Right
 			outside = true;
 			for (int i = 0; i < 4; i++)
-				if (frustum[i].X < x + w)
+				if (frustum[i].X < x + size)
 					outside = false;
 			if (outside) return true;
 
@@ -184,14 +256,17 @@ namespace Fractals
 			// Buttom
 			outside = true;
 			for (int i = 0; i < 4; i++)
-				if (frustum[i].Y < y + h)
+				if (frustum[i].Y < y + size)
 					outside = false;
 			if (outside) return true;
-
+			
+			// Approximatly inside
+			return false;
+/*
 			////////////////////////////////////////
-			/// Alternate culling 
+			/// Test box aginst frustum planes
 			////////////////////////////////////////
-			PointF[] coner = new PointF[] {new PointF(x,y), new PointF(x+w,y), new PointF(x,y+h), new PointF(x+w,y+h)};
+			PointF[] coner = new PointF[] {new PointF(x,y), new PointF(x+size,y), new PointF(x,y+size), new PointF(x+size,y+size)};
 			//PointF[] midpoint = new PointF[] {new PointF(x+w/2,y+h/2)};
 			transform.TransformPoints(coner);
 
@@ -225,7 +300,7 @@ namespace Fractals
 
 
 			// Approximatly inside
-			return false;
+			return false;*/
 		}
 	}
 }

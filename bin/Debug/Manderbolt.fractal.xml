@@ -1,6 +1,6 @@
 <SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:clr="http://schemas.microsoft.com/soap/encoding/clr/1.0" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
 <SOAP-ENV:Body>
-<a1:Settings id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1531.25921%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<a1:Settings id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1536.33051%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <equations href="#ref-3"/>
 <lastEquation id="ref-4">General</lastEquation>
 <views href="#ref-5"/>
@@ -15,7 +15,7 @@
 </a1:Settings>
 <a2:Hashtable id="ref-3" xmlns:a2="http://schemas.microsoft.com/clr/ns/System.Collections">
 <LoadFactor>0.72</LoadFactor>
-<Version>46</Version>
+<Version>51</Version>
 <Comparer xsi:null="1"/>
 <HashCodeProvider xsi:null="1"/>
 <HashSize>11</HashSize>
@@ -24,7 +24,7 @@
 </a2:Hashtable>
 <a2:Hashtable id="ref-5" xmlns:a2="http://schemas.microsoft.com/clr/ns/System.Collections">
 <LoadFactor>0.72</LoadFactor>
-<Version>45</Version>
+<Version>64</Version>
 <Comparer xsi:null="1"/>
 <HashCodeProvider xsi:null="1"/>
 <HashSize>11</HashSize>
@@ -33,7 +33,7 @@
 </a2:Hashtable>
 <a2:Hashtable id="ref-7" xmlns:a2="http://schemas.microsoft.com/clr/ns/System.Collections">
 <LoadFactor>0.72</LoadFactor>
-<Version>63</Version>
+<Version>73</Version>
 <Comparer xsi:null="1"/>
 <HashCodeProvider xsi:null="1"/>
 <HashSize>11</HashSize>
@@ -85,16 +85,25 @@
 	return;
 }</item>
 </SOAP-ENC:Array>
-<SOAP-ENC:Array id="ref-15" SOAP-ENC:arrayType="xsd:anyType[6]">
-<item id="ref-25" xsi:type="SOAP-ENC:string">smatr aa</item>
-<item id="ref-26" xsi:type="SOAP-ENC:string">2</item>
-<item id="ref-27" xsi:type="SOAP-ENC:string">buble</item>
-<item id="ref-28" xsi:type="SOAP-ENC:string">Overview</item>
-<item id="ref-29" xsi:type="SOAP-ENC:string">1</item>
-<item id="ref-30" xsi:type="SOAP-ENC:string">twists</item>
+<SOAP-ENC:Array id="ref-15" SOAP-ENC:arrayType="xsd:anyType[7]">
+<item id="ref-25" xsi:type="SOAP-ENC:string">error</item>
+<item id="ref-26" xsi:type="SOAP-ENC:string">smatr aa</item>
+<item id="ref-27" xsi:type="SOAP-ENC:string">2</item>
+<item id="ref-28" xsi:type="SOAP-ENC:string">buble</item>
+<item id="ref-29" xsi:type="SOAP-ENC:string">Overview</item>
+<item id="ref-30" xsi:type="SOAP-ENC:string">1</item>
+<item id="ref-31" xsi:type="SOAP-ENC:string">twists</item>
 </SOAP-ENC:Array>
-<SOAP-ENC:Array id="ref-16" SOAP-ENC:arrayType="xsd:anyType[6]">
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1531.25921%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<SOAP-ENC:Array id="ref-16" SOAP-ENC:arrayType="xsd:anyType[7]">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1536.33051%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<Xpos>-0.580150783061981</Xpos>
+<Ypos>-0.476638704538345</Ypos>
+<Xzoom>60.7531350246409</Xzoom>
+<Yzoom>60.7531350246409</Yzoom>
+<antiAliasingLevel>4</antiAliasingLevel>
+<edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
+</item>
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1536.33051%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.562625184351083</Xpos>
 <Ypos>-0.64303398167477</Ypos>
 <Xzoom>64</Xzoom>
@@ -102,7 +111,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1531.25921%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1536.33051%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.102486425516557</Xpos>
 <Ypos>-0.944192065363346</Ypos>
 <Xzoom>256</Xzoom>
@@ -110,7 +119,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1531.25921%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1536.33051%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.529910340601083</Xpos>
 <Ypos>-0.66778109150136</Ypos>
 <Xzoom>256</Xzoom>
@@ -118,7 +127,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1531.25921%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1536.33051%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.5</Xpos>
 <Ypos>0</Ypos>
 <Xzoom>1</Xzoom>
@@ -126,7 +135,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1531.25921%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1536.33051%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.567385926538583</Xpos>
 <Ypos>-0.641769530807718</Ypos>
 <Xzoom>16</Xzoom>
@@ -134,7 +143,7 @@
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>
-<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1531.25921%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1536.33051%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <Xpos>-0.657525510204081</Xpos>
 <Ypos>-0.416485507246376</Ypos>
 <Xzoom>64</Xzoom>
@@ -144,12 +153,12 @@
 </item>
 </SOAP-ENC:Array>
 <SOAP-ENC:Array id="ref-17" SOAP-ENC:arrayType="xsd:anyType[3]">
-<item id="ref-31" xsi:type="SOAP-ENC:string">Random</item>
-<item id="ref-32" xsi:type="SOAP-ENC:string">Blue</item>
-<item id="ref-33" xsi:type="SOAP-ENC:string">Blue spider</item>
+<item id="ref-32" xsi:type="SOAP-ENC:string">Random</item>
+<item id="ref-33" xsi:type="SOAP-ENC:string">Blue</item>
+<item id="ref-34" xsi:type="SOAP-ENC:string">Blue spider</item>
 </SOAP-ENC:Array>
 <SOAP-ENC:Array id="ref-18" SOAP-ENC:arrayType="xsd:anyType[3]">
-<item id="ref-34" xsi:type="SOAP-ENC:string">static Color[] c = new Color[65];
+<item id="ref-35" xsi:type="SOAP-ENC:string">static Color[] c = new Color[65];
 static bool done = false;
 static void MakeColors()
 {
@@ -161,7 +170,7 @@ static void MakeColors()
 		c[i] = Color.FromArgb(r.Next(255),r.Next(255),r.Next(255));
 	}
 }</item>
-<item id="ref-35" xsi:type="SOAP-ENC:string">static Color[] c = new Color[65];
+<item id="ref-36" xsi:type="SOAP-ENC:string">static Color[] c = new Color[65];
 static bool done = false;
 static void MakeColors()
 {
@@ -174,7 +183,7 @@ static void MakeColors()
 	}
 	c[64] = Color.FromArgb(0,0,255);
 }</item>
-<item id="ref-36" xsi:type="SOAP-ENC:string">static Color[] c = new Color[65];
+<item id="ref-37" xsi:type="SOAP-ENC:string">static Color[] c = new Color[65];
 static bool done = false;
 static void MakeColors()
 {
