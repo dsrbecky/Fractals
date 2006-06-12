@@ -1,4 +1,7 @@
 using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 
 namespace Fractals
 {
@@ -31,13 +34,24 @@ namespace Fractals
 		public double deltaVpartX{get{return m21;}} //m21
 		public double deltaVpartY{get{return m22;}} //m22
 
+		public Matrix matrix 
+		{
+			get
+			{
+				Matrix m = new Matrix();
+				m.Translate((float)-Xpos, (float)-Ypos, MatrixOrder.Append);
+				m.Scale((float)Xzoom, (float)Yzoom, MatrixOrder.Append);
+				m.Rotate((float)(Angle), MatrixOrder.Append);
+				return m;
+			}
+		}
+
 		public void Move (double _Xpos,double _Ypos,double _Xzoom,double _Yzoom)
 		{
 			Xpos = _Xpos;
 			Ypos = _Ypos;
 			Xzoom = _Xzoom;
 			Yzoom = _Yzoom;
-			Angle = 0;
 
 			UpdateTransformationMatrix();
 		}

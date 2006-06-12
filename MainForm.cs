@@ -22,18 +22,22 @@ namespace Fractals
 		public static SettingsDlg setDlg = new SettingsDlg();
 		public Bitmap bitmap;
 		public object BmpSyncRoot = new object();
+		float zoomSpeed = 1;
 
 		private System.Windows.Forms.MainMenu mainMenu;
 		private System.Windows.Forms.MenuItem menuItemSave;
 		private System.Windows.Forms.MenuItem menuItemSettings;
 		private System.Windows.Forms.MenuItem menuItemAbout;
-		
-		private System.ComponentModel.Container components = null;
+		private System.Windows.Forms.MenuItem menuItem1;
+		private System.Windows.Forms.MenuItem menuItem2;
+		private System.Windows.Forms.Timer timerZooming;
+		private System.ComponentModel.IContainer components;
 
 		public MainForm()
 		{
 			InitializeComponent();
 			setDlg.ViewChanged += new EventHandlerNoArg(RefreshImage);
+			MouseWheel += new MouseEventHandler (picture_MouseWheel);
 		}
 
 		
@@ -56,17 +60,23 @@ namespace Fractals
 		/// </summary>
 		private void InitializeComponent()
 		{
+			this.components = new System.ComponentModel.Container();
 			this.mainMenu = new System.Windows.Forms.MainMenu();
 			this.menuItemSave = new System.Windows.Forms.MenuItem();
 			this.menuItemSettings = new System.Windows.Forms.MenuItem();
 			this.menuItemAbout = new System.Windows.Forms.MenuItem();
+			this.menuItem1 = new System.Windows.Forms.MenuItem();
+			this.menuItem2 = new System.Windows.Forms.MenuItem();
+			this.timerZooming = new System.Windows.Forms.Timer(this.components);
 			// 
 			// mainMenu
 			// 
 			this.mainMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
 																					 this.menuItemSave,
 																					 this.menuItemSettings,
-																					 this.menuItemAbout});
+																					 this.menuItemAbout,
+																					 this.menuItem1,
+																					 this.menuItem2});
 			// 
 			// menuItemSave
 			// 
@@ -86,14 +96,31 @@ namespace Fractals
 			this.menuItemAbout.Text = "About";
 			this.menuItemAbout.Click += new System.EventHandler(this.menuItemAbout_Click);
 			// 
-			// Form
+			// menuItem1
+			// 
+			this.menuItem1.Index = 3;
+			this.menuItem1.Text = "Refresh";
+			this.menuItem1.Click += new System.EventHandler(this.menuItem1_Click);
+			// 
+			// menuItem2
+			// 
+			this.menuItem2.Index = 4;
+			this.menuItem2.Text = "GC";
+			this.menuItem2.Click += new System.EventHandler(this.menuItem2_Click);
+			// 
+			// timerZooming
+			// 
+			this.timerZooming.Interval = 50;
+			this.timerZooming.Tick += new System.EventHandler(this.timerZooming_Tick);
+			// 
+			// MainForm
 			// 
 			this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
 			this.ClientSize = new System.Drawing.Size(392, 345);
 			this.Menu = this.mainMenu;
 			this.MinimumSize = new System.Drawing.Size(100, 100);
-			this.Name = "Form";
-			this.Text = "Fractals";
+			this.Name = "MainForm";
+			this.Text = "Fractals - BETA - Unstable";
 			this.Resize += new System.EventHandler(this.Form1_Resize);
 			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picture_MouseDown);
 			this.Closing += new System.ComponentModel.CancelEventHandler(this.Form1_Closing);
@@ -111,40 +138,55 @@ namespace Fractals
 
 		private void picture_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
+			if (e.Button == MouseButtons.Left) zoomSpeed = 1+8f/128;
+			if (e.Button == MouseButtons.Middle) zoomSpeed = 1;
+			if (e.Button == MouseButtons.Right) zoomSpeed = 1-8f/128;
+
+			timerZooming.Enabled = true;
 			mouseX = e.X;
 			mouseY = e.Y;
 		}
 
 		private void picture_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
-			if (Math.Abs(mouseX - e.X) <= 5 || Math.Abs(mouseY - e.Y) <= 5)
-			{ // simple zoom
-				double zoom = 1;
-				if (e.Button == MouseButtons.Left) zoom = 4;
-				if (e.Button == MouseButtons.Middle) zoom = 1;
-				if (e.Button == MouseButtons.Right) zoom = 0.25;
+			timerZooming.Enabled = false;
+		}
 
-				View tmp = setDlg.view;
-				tmp.Move(				
-						setDlg.view.makeX(e.X,ClientRectangle.Width),
-						setDlg.view.makeY(e.Y,ClientRectangle.Height),
-						tmp.Xzoom * zoom,
-						tmp.Yzoom * zoom);
-				setDlg.view = tmp;
-			}
-			else
-			{ // box zoom
-				/*view = new View(view.makeX(mouseX, ClientRectangle.Width),
-					view.makeX(e.X, ClientRectangle.Width),
-					view.makeY(mouseY, ClientRectangle.Height),
-					view.makeY(e.Y, ClientRectangle.Height));*/
-			}
-			RefreshImage();
+		private void picture_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
+		{
+			View tmp = setDlg.view;
+			tmp.Angle += 10*(e.Delta/120);
+			setDlg.view = tmp;
+
+			Invalidate();		
+		}
+
+		private void timerZooming_Tick(object sender, System.EventArgs e)
+		{
+			View tmp = setDlg.view;
+			Point pos = PointToClient(MousePosition);
+			//pos.X = (int)(pos.X * 1f/8 + (ClientRectangle.Width/2) * 7f/8);
+			//pos.Y = (int)(pos.Y * 1f/8 + (ClientRectangle.Height/2) * 7f/8);
+			PointF[] dest = new PointF[1]; // [-1,1] mapping
+			dest[0].X = (((float)pos.X)/ClientRectangle.Width - 0.5f)*2f*0.1f;
+			dest[0].Y = (((float)pos.Y)/ClientRectangle.Height - 0.5f)*2f*0.1f;
+			Matrix inverse = setDlg.view.matrix.Clone();
+			inverse.Invert();
+			inverse.TransformPoints (dest);
+			tmp.Move(				
+				dest[0].X,
+				dest[0].Y,
+				tmp.Xzoom * zoomSpeed,
+				tmp.Yzoom * zoomSpeed);
+			setDlg.view = tmp;
+
+			Invalidate();
 		}
 
 		private void Form1_Resize(object sender, System.EventArgs e)
 		{
-			RefreshImage();
+			//RefreshImage();
+			Invalidate();
 		}
 
 		public void RefreshImage()
@@ -213,13 +255,15 @@ namespace Fractals
 
 		private void Form1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
 		{
+			new Rendrer(Algorihtm.d).Render(setDlg.view, e.Graphics, ClientRectangle.Width, ClientRectangle.Height);
+			/*
 			lock (BmpSyncRoot)
 			{
 				Graphics g = e.Graphics;
 				//g.RotateTransform(45);
 				g.InterpolationMode = InterpolationMode.HighQualityBicubic;
 				g.DrawImage(bitmap ,0 ,0 ,ClientRectangle.Width, ClientRectangle.Height);
-			}
+			}*/
 		}
 	
 		protected override void OnPaintBackground(PaintEventArgs pevent)
@@ -237,5 +281,16 @@ namespace Fractals
 			setDlg.Show();
 			setDlg.BringToFront();
 		}
+
+		private void menuItem1_Click(object sender, System.EventArgs e)
+		{
+			Invalidate();
+		}
+
+		private void menuItem2_Click(object sender, System.EventArgs e)
+		{
+			GC.Collect();
+		}
+
 	}
 }

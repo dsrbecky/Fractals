@@ -39,7 +39,7 @@ namespace Fractals
 				_view.Yzoom = (double)TabViewYzoom.Value;
 
 				//TODO: do the matrix stuf
-				_view.Angle = 0;
+				_view.Angle = TabViewAngle.Value;
 				_view.m11 = 0;_view.m12 = 0;_view.m21 = 0;_view.m22 = 0;
 				//TODO: set proper values
 				_view.antiAliasingLevel = 4;
@@ -55,6 +55,7 @@ namespace Fractals
 				TabViewYpos.Value = (decimal)value.Ypos;
 				TabViewXzoom.Value = (decimal)value.Xzoom;
 				TabViewYzoom.Value = (decimal)value.Yzoom;
+				TabViewAngle.Value = ((int)value.Angle+360)%360;
 				//TODO: set proper values of AA
 				
 			}
@@ -129,6 +130,8 @@ namespace Fractals
 		private System.Windows.Forms.Label labelFormat;
 		private System.Windows.Forms.ComboBox TabSaveFileformat;
 		private System.Windows.Forms.Button MainBtnSaveAs;
+		private System.Windows.Forms.Label labelAngle;
+		private System.Windows.Forms.TrackBar TabViewAngle;
 		
 		private System.ComponentModel.Container components = null;
 
@@ -256,6 +259,8 @@ namespace Fractals
 			this.MainBtnDelete = new System.Windows.Forms.Button();
 			this.labelFile = new System.Windows.Forms.Label();
 			this.MainBtnSaveAs = new System.Windows.Forms.Button();
+			this.labelAngle = new System.Windows.Forms.Label();
+			this.TabViewAngle = new System.Windows.Forms.TrackBar();
 			this.Tabs.SuspendLayout();
 			this.TabEq.SuspendLayout();
 			this.TabView.SuspendLayout();
@@ -271,6 +276,7 @@ namespace Fractals
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
 			this.TabComments.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.TabViewAngle)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// MainCmbBox
@@ -404,6 +410,8 @@ namespace Fractals
 			// TabView
 			// 
 			this.TabView.AutoScroll = true;
+			this.TabView.Controls.Add(this.TabViewAngle);
+			this.TabView.Controls.Add(this.labelAngle);
 			this.TabView.Controls.Add(this.TabViewBtnDelete);
 			this.TabView.Controls.Add(this.TabViewBtnSaveAs);
 			this.TabView.Controls.Add(this.TabViewBtnSave);
@@ -458,7 +466,7 @@ namespace Fractals
 			this.TabViewCmbBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.TabViewCmbBox.Location = new System.Drawing.Point(8, 8);
 			this.TabViewCmbBox.Name = "TabViewCmbBox";
-			this.TabViewCmbBox.Size = new System.Drawing.Size(144, 20);
+			this.TabViewCmbBox.Size = new System.Drawing.Size(144, 21);
 			this.TabViewCmbBox.Sorted = true;
 			this.TabViewCmbBox.TabIndex = 20;
 			this.TabViewCmbBox.DropDown += new System.EventHandler(this.DropDown);
@@ -483,7 +491,7 @@ namespace Fractals
 														   "32x32 edge only"});
 			this.TabViewAA.Location = new System.Drawing.Point(112, 136);
 			this.TabViewAA.Name = "TabViewAA";
-			this.TabViewAA.Size = new System.Drawing.Size(280, 20);
+			this.TabViewAA.Size = new System.Drawing.Size(280, 21);
 			this.TabViewAA.TabIndex = 19;
 			// 
 			// labelAA
@@ -1076,6 +1084,24 @@ namespace Fractals
 			this.MainBtnSaveAs.Text = "Save as ...";
 			this.MainBtnSaveAs.Click += new System.EventHandler(this.MainBtnSaveAs_Click);
 			// 
+			// labelAngle
+			// 
+			this.labelAngle.Location = new System.Drawing.Point(8, 168);
+			this.labelAngle.Name = "labelAngle";
+			this.labelAngle.Size = new System.Drawing.Size(100, 16);
+			this.labelAngle.TabIndex = 24;
+			this.labelAngle.Text = "Angle:";
+			// 
+			// TabViewAngle
+			// 
+			this.TabViewAngle.LargeChange = 10;
+			this.TabViewAngle.Location = new System.Drawing.Point(112, 160);
+			this.TabViewAngle.Maximum = 360;
+			this.TabViewAngle.Name = "TabViewAngle";
+			this.TabViewAngle.Size = new System.Drawing.Size(280, 45);
+			this.TabViewAngle.TabIndex = 25;
+			this.TabViewAngle.TickFrequency = 10;
+			// 
 			// SettingsDlg
 			// 
 			this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
@@ -1105,6 +1131,7 @@ namespace Fractals
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
 			this.TabComments.ResumeLayout(false);
+			((System.ComponentModel.ISupportInitialize)(this.TabViewAngle)).EndInit();
 			this.ResumeLayout(false);
 
 		}
