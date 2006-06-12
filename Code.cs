@@ -4,12 +4,21 @@ using System.Drawing.Imaging;
 
 namespace Fractals
 {
-	class Main
+	public class Algorihtm
 	{
+		public delegate void dlgtGetColor(double p, double q,out double r,out double g,out double b);
+
+		static void GetColor(double p, double q,out double r,out double g,out double b)
+		{
+			Form.setDlg.GetColorDelegate (p,q,out r,out g,out b);
+		}
+
 		public static unsafe void CalcImage(Bitmap bmp,object BmpSyncRoot,View v,EventHandlerNoArg Updated)
 		{
+			DateTime begin;
+			DateTime beginTotal = DateTime.Now;
 			Console.WriteLine("Rendring...");
-
+			begin = DateTime.Now;
 			int UpdateRate = 5000;
 			int UpdateCounter = 0;
 			bool redrawFilterOn = false;
@@ -23,19 +32,40 @@ namespace Fractals
 
 			byte[,,] data = new byte[h,w,4];
 
-			for(int boxsize = 8; boxsize >= 1;boxsize /= 2)
+			v.Angle= Math.PI/10;
+			v.UpdateTransformationMatrix();
+			double deltaUpartX = v.deltaUpartX / (w / 2);
+			double deltaUpartY = v.deltaUpartY / (h / 2);
+			double deltaVpartX = v.deltaVpartX / (w / 2);
+			double deltaVpartY = v.deltaVpartY / (h / 2);
+
+			for(int boxsize = 1; boxsize >= 1;boxsize /= 2)
 			{
 				Console.WriteLine(" - level "+boxsize.ToString());
+
+				double U = v.Xpos - deltaUpartX*w/2 - deltaUpartY*h/2;
+				double V = v.Ypos - deltaVpartX*w/2 - deltaVpartY*h/2;
+				
 				for(int y = 0;y < h;y += boxsize)
+				{
+					U += deltaUpartY * boxsize;
+					V += deltaVpartY * boxsize;
+					double oldU = U;
+					double oldV = V;
+
 					for(int x = 0;x < w;x += boxsize)
 					{
+						U += deltaUpartX * boxsize;
+						V += deltaVpartX * boxsize;
+
 						if ((x % (boxsize*2) == 0) && 
 							(y % (boxsize*2) == 0) &&
 							redrawFilterOn) continue;
 						double r,g,b;
+						
 						GetColor( 
-							v.makeX(x, w),
-							v.makeY(y, h),
+							U,
+							V,
 							out r, out g, out b
 							);
 						for(int by=y; by < Math.Min(y+boxsize,h); by ++)
@@ -58,6 +88,10 @@ namespace Fractals
 							UpdateCounter = 0;
 							Updated();
 						}
+					}
+
+					U = oldU;
+					V = oldV;
 				}
 				redrawFilterOn = true;
 
@@ -72,10 +106,15 @@ namespace Fractals
 					UpdateCounter = 0;
 					Updated();
 				}
+				Console.WriteLine(" (done in " + ((DateTime.Now.Ticks-begin.Ticks)/10000).ToString() + "ms)");
+				begin = DateTime.Now;
 			}
+			
+			Console.WriteLine(" (tatal time: " + ((DateTime.Now.Ticks-beginTotal.Ticks)/10000).ToString() + "ms)");
 
 			if (v.AA == 1) return;
 
+		
 			Console.WriteLine(" - antialiasing");
 			Console.WriteLine("   - setting flag tables");
 			// Set doAA
@@ -87,6 +126,9 @@ namespace Fractals
 					checkAA[y,x] = true;
 					AAdone[y,x] = false;
 				}
+
+			Console.WriteLine(" (done in " + ((DateTime.Now.Ticks-begin.Ticks)/10000).ToString() + "ms)");
+			begin = DateTime.Now;
 
 			Console.WriteLine("   - performing AA");
 			// Update where doAA = true
@@ -173,6 +215,9 @@ namespace Fractals
 
 			Console.WriteLine("   - AA done");
 
+			Console.WriteLine(" (done in " + ((DateTime.Now.Ticks-begin.Ticks)/10000).ToString() + "ms)");
+			Console.WriteLine(" (tatal time: " + ((DateTime.Now.Ticks-beginTotal.Ticks)/10000).ToString() + "ms)");
+			begin = DateTime.Now;
 			{
 				Bitmap newbmp;
 				fixed(byte* buffer = data)

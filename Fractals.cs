@@ -18,7 +18,7 @@ namespace Fractals
 	{		
 		int mouseX,mouseY;
 		Thread refreshThread = null;
-		SettingsDlg setDlg = new SettingsDlg();
+		public static SettingsDlg setDlg = new SettingsDlg();
 		public Bitmap bitmap;
 		private object BmpSyncRoot = new object();
 
@@ -165,8 +165,7 @@ namespace Fractals
 		}
 		public void ThreatRefreshEnteryPoint()
 		{
-			if (setDlg.Method != null)
-				setDlg.Method.Invoke(null,new object[] {bitmap, BmpSyncRoot, setDlg.view, new EventHandlerNoArg(IvalidateMe)});
+			Fractals.Algorihtm.CalcImage(bitmap, BmpSyncRoot, setDlg.view, new EventHandlerNoArg(IvalidateMe));
 			System.Diagnostics.Debug.WriteLine("Refresh finished");
 		}
 

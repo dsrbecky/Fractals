@@ -37,6 +37,10 @@ namespace Fractals
 				_view.Ypos = (double)TabViewYpos.Value;
 				_view.Xzoom = (double)TabViewXzoom.Value;
 				_view.Yzoom = (double)TabViewYzoom.Value;
+
+				//TODO: do the matrix stuf
+				_view.Angle = 0;
+				_view.m11 = 0;_view.m12 = 0;_view.m21 = 0;_view.m22 = 0;
 				//TODO: set proper values
 				_view.antiAliasingLevel = 4;
 				_view.edgeOnlyAntiAliasing = true;
@@ -1295,6 +1299,16 @@ namespace Fractals
 
 		#region Code Compiler
 
+		private Algorihtm.dlgtGetColor getColorDelegate;
+		public Algorihtm.dlgtGetColor GetColorDelegate
+		{
+			get
+			{
+				if (method == null)
+					UpdateMethod();
+				return getColorDelegate;
+			}
+		}
 		private MethodInfo method;
 		public MethodInfo Method
 		{
@@ -1316,12 +1330,10 @@ namespace Fractals
 		private void UpdateMethod()
 		{
 			// Make source code
-			string tmpCode = "";
-			Stream st = Assembly.GetCallingAssembly().GetManifestResourceStream("Fractals.Code.cs");
-			byte[] resCode = new byte[(int)st.Length];
-			st.Read(resCode,0,(int)st.Length);
-			tmpCode = new System.Text.ASCIIEncoding().GetString(resCode);
-			tmpCode = tmpCode.Replace (@"//<CODE GOES HERE>//",TabEqCode.Text + "\n" + TabColorsCode.Text + "\n" + TabCustomCode.Text);
+			string tmpCode = "using System;using System.Drawing;using System.Drawing.Imaging;" +
+				             "namespace Fractals {class Main{" +
+				             TabEqCode.Text + "\n" + TabColorsCode.Text + "\n" + TabCustomCode.Text+
+						     "\n}}";
 
 			// set parameters
 			CompilerParameters param = new CompilerParameters();
@@ -1344,7 +1356,8 @@ namespace Fractals
 			else
 			{ // Succes
 				Type main = res.CompiledAssembly.GetType("Fractals.Main");
-				method = main.GetMethod("CalcImage");
+				method = main.GetMethod("GetColor");
+				getColorDelegate = (Algorihtm.dlgtGetColor)Delegate.CreateDelegate(typeof(Algorihtm.dlgtGetColor),method);
 			}
 		}	
 		

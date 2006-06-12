@@ -9,33 +9,6 @@ using System.Collections.Specialized;
 namespace Fractals
 {
 	[Serializable]
-	public struct View
-	{
-		public double Xpos,Ypos,Xzoom,Yzoom;
-		public int antiAliasingLevel;
-		public bool edgeOnlyAntiAliasing;
-		public int AA {get {return antiAliasingLevel;}}
-
-		public void Move (double _Xpos,double _Ypos,double _Xzoom,double _Yzoom)
-		{
-			Xpos = _Xpos;
-			Ypos = _Ypos;
-			Xzoom = _Xzoom;
-			Yzoom = _Yzoom;
-		}
-
-		public double makeX (double pos, double range)
-		{
-			return (((double)pos)/range - 0.5) * (2d/Xzoom) + Xpos;
-		}
-
-		public double makeY (double pos, double range)
-		{
-			return (((double)pos)/range - 0.5) * (2d/Yzoom) + Ypos;
-		}
-	}
-
-	[Serializable]
 	public struct SavingRules
 	{
 		public enum ResulutionMode:int {Desktop = 0, MainWindow = 1, Custom = 2};

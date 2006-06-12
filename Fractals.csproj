@@ -110,7 +110,7 @@
                 <File
                     RelPath = "Code.cs"
                     SubType = "Code"
-                    BuildAction = "EmbeddedResource"
+                    BuildAction = "Compile"
                 />
                 <File
                     RelPath = "Fractals.cs"
@@ -146,6 +146,11 @@
                     RelPath = "SettingsDlg.resx"
                     DependentUpon = "SettingsDlg.cs"
                     BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "View.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
                 />
             </Include>
         </Files>
