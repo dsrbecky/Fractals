@@ -2,11 +2,11 @@
 <SOAP-ENV:Body>
 <a1:Settings id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1743.40520%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
 <equations href="#ref-3"/>
-<lastEquation id="ref-4">General</lastEquation>
+<lastEquation id="ref-4">Heart</lastEquation>
 <views href="#ref-5"/>
 <lastView id="ref-6">Overview</lastView>
 <colorPaletes href="#ref-7"/>
-<lastColorPalete id="ref-8">Blue</lastColorPalete>
+<lastColorPalete id="ref-8">Red</lastColorPalete>
 <customCodes href="#ref-9"/>
 <lastCustomCode id="ref-10"></lastCustomCode>
 <savingRules href="#ref-11"/>
@@ -15,7 +15,7 @@
 </a1:Settings>
 <a2:Hashtable id="ref-3" xmlns:a2="http://schemas.microsoft.com/clr/ns/System.Collections">
 <LoadFactor>0.72</LoadFactor>
-<Version>52</Version>
+<Version>53</Version>
 <KeyComparer xsi:null="1"/>
 <HashSize>11</HashSize>
 <Keys href="#ref-13"/>
@@ -23,7 +23,7 @@
 </a2:Hashtable>
 <a2:Hashtable id="ref-5" xmlns:a2="http://schemas.microsoft.com/clr/ns/System.Collections">
 <LoadFactor>0.72</LoadFactor>
-<Version>45</Version>
+<Version>46</Version>
 <KeyComparer xsi:null="1"/>
 <HashSize>11</HashSize>
 <Keys href="#ref-15"/>
@@ -31,7 +31,7 @@
 </a2:Hashtable>
 <a2:Hashtable id="ref-7" xmlns:a2="http://schemas.microsoft.com/clr/ns/System.Collections">
 <LoadFactor>0.72</LoadFactor>
-<Version>81</Version>
+<Version>80</Version>
 <KeyComparer xsi:null="1"/>
 <HashSize>11</HashSize>
 <Keys href="#ref-17"/>
@@ -105,10 +105,10 @@
 </SOAP-ENC:Array>
 <SOAP-ENC:Array id="ref-16" SOAP-ENC:arrayType="xsd:anyType[2]">
 <item xsi:type="a1:View" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1743.40520%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
-<Xpos>-0.380102040816326</Xpos>
-<Ypos>-0.423188405797102</Ypos>
-<Xzoom>0.5</Xzoom>
-<Yzoom>0.5</Yzoom>
+<Xpos>0.0695715194955347</Xpos>
+<Ypos>0.0316551310833557</Ypos>
+<Xzoom>0.20256661643480059</Xzoom>
+<Yzoom>0.20256661643480059</Yzoom>
 <antiAliasingLevel>4</antiAliasingLevel>
 <edgeOnlyAntiAliasing>true</edgeOnlyAntiAliasing>
 </item>

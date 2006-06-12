@@ -5,7 +5,7 @@ namespace Fractals
 {
 	public unsafe class Fragment
 	{
-		public const int FragmentSize = 4;
+		public const int FragmentSize = 16;
 		// Memory usage: FragmentSize*FragmentSize*[2-ExPalette]
 
 		//public Fragment[] childs = new Fragment[4];
@@ -71,7 +71,15 @@ namespace Fractals
 			MakeChildRB();
 		}
 
-		/*public void MakeChild(int i)
+        public bool HasAllChilds
+        {
+            get
+            {
+                return childLT != null && childRT != null && childLB != null && childRB != null;
+            }
+        }
+
+        /*public void MakeChild(int i)
 		{
 			//childs[i] = new Fragment(hasExPalette);
 			// TODO - lame
@@ -105,17 +113,25 @@ namespace Fractals
 		public TempData()
 		{
 			root = new Fragment();
-			minX = -2d;
-			minY = -2d;
-			size = 4d;
+			minX = -1d;
+			minY = -1d;
+			size = 2d;
 			hasExPalette = false;
 			syncRoot = new object();
+
+            for (int i = 0; i < 5; i++) {
+                ExtendRoot();
+            }
 		}
 
 		public void ExtendRoot()
 		{
 			// TODO: Copy data of root to new root
 			Fragment newRoot = new Fragment();
+
+            minX *= 2;
+            minY *= 2;
+            size *= 2;
 
             newRoot.childLT = new Fragment();
             newRoot.childLT.childRB = root.childLT;

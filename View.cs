@@ -13,6 +13,8 @@ namespace Fractals
 		// TODO: [Serializable]
 		[NonSerialized]
 		public double Angle;
+        [NonSerialized]
+		public double TargetAngle;
 
 		// TODO: remove>>>
 		public int antiAliasingLevel;

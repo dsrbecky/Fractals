@@ -120,7 +120,16 @@
   <metadata name="TabCommentsTextbox.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>Public</value>
   </metadata>
+  <metadata name="TabCommentsTextbox.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>Public</value>
+  </metadata>
   <metadata name="TabCustomCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>Public</value>
+  </metadata>
+  <metadata name="TabCustomCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>Public</value>
+  </metadata>
+  <metadata name="TabColorsCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>Public</value>
   </metadata>
   <metadata name="TabColorsCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -138,7 +147,25 @@
   <metadata name="TabViewXpos.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>Public</value>
   </metadata>
+  <metadata name="TabViewYzoom.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>Public</value>
+  </metadata>
+  <metadata name="TabViewXzoom.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>Public</value>
+  </metadata>
+  <metadata name="TabViewYpos.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>Public</value>
+  </metadata>
+  <metadata name="TabViewXpos.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>Public</value>
+  </metadata>
   <metadata name="TabEqCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>Public</value>
+  </metadata>
+  <metadata name="TabEqCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>Public</value>
+  </metadata>
+  <metadata name="chkBoxDebugMode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>Public</value>
   </metadata>
 </root>
