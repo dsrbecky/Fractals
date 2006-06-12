@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Collections;
 using System.ComponentModel;
@@ -14,13 +15,13 @@ namespace Fractals
 {
 	public delegate void EventHandlerNoArg();
 
-	public class Form : System.Windows.Forms.Form
+	public class MainForm : System.Windows.Forms.Form
 	{		
 		int mouseX,mouseY;
 		Thread refreshThread = null;
 		public static SettingsDlg setDlg = new SettingsDlg();
 		public Bitmap bitmap;
-		private object BmpSyncRoot = new object();
+		public object BmpSyncRoot = new object();
 
 		private System.Windows.Forms.MainMenu mainMenu;
 		private System.Windows.Forms.MenuItem menuItemSave;
@@ -29,7 +30,7 @@ namespace Fractals
 		
 		private System.ComponentModel.Container components = null;
 
-		public Form()
+		public MainForm()
 		{
 			InitializeComponent();
 			setDlg.ViewChanged += new EventHandlerNoArg(RefreshImage);
@@ -105,7 +106,7 @@ namespace Fractals
 		[STAThread]
 		static void Main() 
 		{
-			Application.Run(new Form());
+			Application.Run(new MainForm());
 		}		
 
 		private void picture_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -157,7 +158,8 @@ namespace Fractals
 
 			if (ClientRectangle.Width == 0 || ClientRectangle.Height == 0) return;
 
-			lock (BmpSyncRoot) bitmap = new Bitmap(ClientRectangle.Width, ClientRectangle.Height);
+			//TODO: correct size w/h
+			lock (BmpSyncRoot) bitmap = new Bitmap(ClientRectangle.Width/8, ClientRectangle.Height/8);
 			refreshThread = new Thread(new ThreadStart(ThreatRefreshEnteryPoint));
 			refreshThread.Name = "Refresh";
 			refreshThread.Priority = ThreadPriority.BelowNormal;
@@ -211,7 +213,13 @@ namespace Fractals
 
 		private void Form1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
 		{
-			lock (BmpSyncRoot) e.Graphics.DrawImage(bitmap, 0, 0);
+			lock (BmpSyncRoot)
+			{
+				Graphics g = e.Graphics;
+				//g.RotateTransform(45);
+				g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+				g.DrawImage(bitmap ,0 ,0 ,ClientRectangle.Width, ClientRectangle.Height);
+			}
 		}
 	
 		protected override void OnPaintBackground(PaintEventArgs pevent)

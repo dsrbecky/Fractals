@@ -99,6 +99,11 @@
         <Files>
             <Include>
                 <File
+                    RelPath = "Algorihtm.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "App.ico"
                     BuildAction = "Content"
                 />
@@ -109,18 +114,7 @@
                 />
                 <File
                     RelPath = "Code.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "Fractals.cs"
-                    SubType = "Form"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "Fractals.resx"
-                    DependentUpon = "Fractals.cs"
-                    BuildAction = "EmbeddedResource"
+                    BuildAction = "None"
                 />
                 <File
                     RelPath = "InputBox.cs"
@@ -131,6 +125,21 @@
                     RelPath = "InputBox.resx"
                     DependentUpon = "InputBox.cs"
                     BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "MainForm.cs"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "MainForm.resx"
+                    DependentUpon = "MainForm.cs"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "Rendrer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
                 />
                 <File
                     RelPath = "Settings.cs"
@@ -146,6 +155,11 @@
                     RelPath = "SettingsDlg.resx"
                     DependentUpon = "SettingsDlg.cs"
                     BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "TempData.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
                 />
                 <File
                     RelPath = "View.cs"
