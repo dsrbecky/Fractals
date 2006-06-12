@@ -37,7 +37,13 @@ namespace Fractals
 
 		public MainForm()
 		{
-			InitializeComponent();
+            /*this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            this.SetStyle(ControlStyles.DoubleBuffer, true);
+            this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            this.SetStyle(ControlStyles.UserPaint, true);
+            this.SetStyle(ControlStyles.ResizeRedraw, true);*/
+
+            InitializeComponent();
 			setDlg.ViewChanged += new EventHandlerNoArg(RefreshImage);
 			MouseWheel += new MouseEventHandler (picture_MouseWheel);
 		}
@@ -165,27 +171,45 @@ namespace Fractals
 
 		private void timerZooming_Tick(object sender, System.EventArgs e)
 		{
-			View tmp = setDlg.view;
+            /*View tmp = setDlg.view;
 			Point pos = PointToClient(MousePosition);
-			//pos.X = (int)(pos.X * 1f/8 + (ClientRectangle.Width/2) * 7f/8);
-			//pos.Y = (int)(pos.Y * 1f/8 + (ClientRectangle.Height/2) * 7f/8);
-			PointF[] dest = new PointF[1]; // [-1,1] mapping
-			dest[0].X = (((float)pos.X)/ClientRectangle.Width - 0.5f)*2f*0.1f;
-			dest[0].Y = (((float)pos.Y)/ClientRectangle.Height - 0.5f)*2f*0.1f;
-			Matrix inverse = setDlg.view.matrix.Clone();
-			inverse.Invert();
-			inverse.TransformPoints (dest);
-			tmp.Move(				
-				dest[0].X,
-				dest[0].Y,
+            pos.X = (int)(pos.X * 1f/8 + (ClientRectangle.Width/2) * 7f/8);
+            pos.Y = (int)(pos.Y * 1f/8 + (ClientRectangle.Height/2) * 7f/8);
+            tmp.Move(
+                tmp.makeX(pos.X, ClientRectangle.Width),
+                tmp.makeY(pos.Y, ClientRectangle.Height),
 				tmp.Xzoom * zoomSpeed,
 				tmp.Yzoom * zoomSpeed);
 			setDlg.view = tmp;
 
-			Invalidate();
-		}
+			Invalidate();*/
 
-		private void Form1_Resize(object sender, System.EventArgs e)
+            View tmp = setDlg.view;
+			PointF pos = PointToClient(MousePosition);
+			//pos.X = (int)(pos.X * 1f/8 + (ClientRectangle.Width/2) * 7f/8);
+			//pos.Y = (int)(pos.Y * 1f/8 + (ClientRectangle.Height/2) * 7f/8);
+            PointF[] dest = new PointF[] {pos}; // [-1,1] mapping
+            dest[0].X = (((float)pos.X) / ClientRectangle.Width - 0.5f) * 2f / 8;
+            dest[0].Y = (((float)pos.Y) / ClientRectangle.Height - 0.5f) * 2f / 8;
+
+            Matrix matrix = new Matrix();
+            matrix.Rotate((float)(tmp.Angle), MatrixOrder.Append);
+            //matrix.Translate(1, 1, MatrixOrder.Append);
+            //matrix.Scale(ClientRectangle.Width / 2, ClientRectangle.Height / 2, MatrixOrder.Append);
+            matrix.Invert();
+
+            matrix.TransformPoints(dest);
+            tmp.Move(
+                tmp.makeX(dest[0].X+1d, 2d),
+                tmp.makeY(dest[0].Y+1d, 2d),
+                tmp.Xzoom * zoomSpeed,
+				tmp.Yzoom * zoomSpeed);
+			setDlg.view = tmp;
+
+			Invalidate();
+        }
+
+        private void Form1_Resize(object sender, System.EventArgs e)
 		{
 			//RefreshImage();
 			Invalidate();

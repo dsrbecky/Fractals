@@ -12,20 +12,13 @@ namespace Fractals
 		dlgtGetIndex _GetIndex;
 
 		// Data identifiers
-		public Fragment root = new Fragment();
-		public double minX = -2d;
-		public double minY = -2d;
-		public double size = 4;
-		public bool hasExPalette = false;  // TRUE - data use 2 bytes; FALSE - data use 1 byte
+        TempData data = new TempData();
 
-		// Temp rendring data
-		Graphics g;
-		PointF[] frustum = new PointF[4];
-		Matrix transform = new Matrix();
-
-		double zoom = 1;
-
-		double minSize;
+        //public Fragment root = new Fragment();
+		//public double minX = -2d;
+		//public double minY = -2d;
+		//public double size = 4;
+		//public bool hasExPalette = false;  // TRUE - data use 2 bytes; FALSE - data use 1 byte
 
 		public DataGenerator(dlgtGetIndex functionGetIndex)
 		{
@@ -93,7 +86,7 @@ namespace Fractals
 		{
 			if (f.bitmap != null) return;
 
-			f.bitmap = new Bitmap(Fragment.FragmentSize+1, Fragment.FragmentSize+1, PixelFormat.Format32bppArgb);
+			f.bitmap = new Bitmap(Fragment.FragmentSize+1, Fragment.FragmentSize+1, PixelFormat.Format32bppRgb);
 			BitmapData bmpData = f.bitmap.LockBits(new Rectangle(0,0,Fragment.FragmentSize+1, Fragment.FragmentSize+1),ImageLockMode.WriteOnly,PixelFormat.Format32bppArgb);
 			UInt32* ptr = (UInt32*) bmpData.Scan0.ToPointer();
 			for(int y = 0;y <= Fragment.FragmentSize;y += 1)
@@ -140,114 +133,104 @@ namespace Fractals
 			}
 		}*/
 
-		void RenderFragmentsRecrusivly (Fragment f,double x, double y, double size,int depht)
-		{
+        void RenderFragmentsRecrusivly(Fragment f, Graphics g, double dataX, double dataY, double dataSize, double renderX, double renderY, double renderSize, int depht, bool simulation)
+        {
 			if (f == null) return;
-			if (IsOutOfFrustum(x,y,size)) return;
+            if (!new RectangleF((float)renderX, (float)renderY, (float)renderSize, (float)renderSize).IntersectsWith(new RectangleF(-1f,-1f,2,2))) return;
 
-			//if (f.bitmap == null) return;
-			bool tooSmall = (size < minSize);
+            //if (f.bitmap == null) return;
+            bool tooSmall = (renderSize < 1d/50d);
 
-			/*if (!f.allTheSame)
+            /*if (!f.allTheSame)
 				for(int i = 0; i < 4; i++)
 					if (f.childs[i] == null)
 						f.MakeChild(i);*/
-			UpdateFragment(f,x,y,size/Fragment.FragmentSize);
-			if (!f.allTheSame)
+            UpdateFragment(f, dataX, dataY, dataSize / Fragment.FragmentSize);
+            if (!f.allTheSame)
 				if (!tooSmall)
 					for(int i = 0; i < 4; i++)
 						if (f.childLT == null)
 							f.MakeChilds();
-			
-			if (f.childLT == null || f.childRT == null || f.childLB == null || f.childRB == null || tooSmall)
+
+            tooSmall = (renderSize < 1d / 50d);
+
+            if (f.childLT == null || f.childRT == null || f.childLB == null || f.childRB == null || tooSmall)
 			{
-				//g.FillRectangle(new SolidBrush (Color.Red),x,y,w,h);
-				//g.DrawImage(f.bitmap ,x ,y ,w, h);
-                
-				UpdateFragment(f,x,y,size/Fragment.FragmentSize);
-
-				UpdateBmp(f,depht);
-				//UpdateBmp(root,depht);
-//				g.FillRectangle(new SolidBrush(Color.Purple), new RectangleF((float)(x*zoom),(float)(y*zoom),(float)(size*zoom)/2,(float)(size*zoom)/2));
-				g.DrawImage(f.bitmap, new RectangleF((float)(x*zoom),(float)(y*zoom),(float)(size*zoom),(float)(size*zoom)), 
-							new RectangleF(0,0,Fragment.FragmentSize,Fragment.FragmentSize),
-							GraphicsUnit.Pixel);
-			}
+                UpdateBmp(f, depht);
+                if (simulation == false)
+                {
+                    g.DrawImage(f.bitmap,
+                                new RectangleF((float)renderX, (float)renderY, (float)renderSize, (float)renderSize),
+                                new RectangleF(0, 0, Fragment.FragmentSize, Fragment.FragmentSize),
+                                GraphicsUnit.Pixel);
+                }
+            }
 			if (tooSmall) return;
-			RenderFragmentsRecrusivly (f.childLT, x         , y         , size/2, depht + 1);
-			RenderFragmentsRecrusivly (f.childRT, x + size/2, y         , size/2, depht + 1);
-			RenderFragmentsRecrusivly (f.childLB, x         , y + size/2, size/2, depht + 1);
-			RenderFragmentsRecrusivly (f.childRB, x + size/2, y + size/2, size/2, depht + 1);
+			RenderFragmentsRecrusivly (f.childLT, g, dataX              , dataY              , dataSize/2, renderX                , renderY                , renderSize/2, depht + 1, simulation);
+			RenderFragmentsRecrusivly (f.childRT, g, dataX + dataSize/2 , dataY              , dataSize/2, renderX + renderSize/2 , renderY                , renderSize/2, depht + 1, simulation);
+			RenderFragmentsRecrusivly (f.childLB, g, dataX              , dataY + dataSize/2 , dataSize/2, renderX                , renderY + renderSize/2 , renderSize/2, depht + 1, simulation);
+			RenderFragmentsRecrusivly (f.childRB, g, dataX + dataSize/2 , dataY + dataSize/2 , dataSize/2, renderX + renderSize/2 , renderY + renderSize/2 , renderSize/2, depht + 1, simulation);
 		}
 
-		public void Render(View v, Graphics destGraphic, int w, int h)
+        static Bitmap tmpImage = new Bitmap(2048, 1024);
+        static Graphics g = Graphics.FromImage(tmpImage);
+
+        public void Render(View v, Graphics g, int w, int h)
 		{
-			g = destGraphic;
-/*			g.ResetTransform();
-			g.Clear(Color.White);
-			g.ScaleTransform((float)v.Xzoom,(float)v.Xzoom);
-			UpdateFragment(root,-2d,-2d,4d/Fragment.FragmentSize);
-			UpdateBmp(root,0);
-			g.DrawImage(root.bitmap, new RectangleF(0,0,(float)(100f/(float)v.Xzoom),(float)(100f/(float)v.Xzoom)), 
-						new RectangleF(0,0,Fragment.FragmentSize,Fragment.FragmentSize),
-						GraphicsUnit.Pixel);
-			g.FillRectangle(new SolidBrush(Color.Purple),new RectangleF(0,(float)(150f/(float)v.Xzoom),(float)(100f/(float)v.Xzoom),(float)(100f/(float)v.Xzoom)));
+            g.ResetTransform();
 
-			return;*/
+            // TESTING: Wide field of view
+        //    g.ScaleTransform(0.5f, 0.5f, MatrixOrder.Append);
+
+            // Rotate
+            g.RotateTransform((float)(v.Angle), MatrixOrder.Append);
+
+            // From [-1,1] to [0,w]
+            g.TranslateTransform(1, 1, MatrixOrder.Append);
+            g.ScaleTransform(w/2, h/2, MatrixOrder.Append);           
+
+            // TESTING: White background
+        //    g.Clear(Color.White);
+
+            g.CompositingMode = CompositingMode.SourceCopy;
+            g.CompositingQuality = CompositingQuality.HighSpeed;
+            g.InterpolationMode = InterpolationMode.Bilinear;
+            g.SmoothingMode = SmoothingMode.HighSpeed;
 
 
+            for (int i = 0; i < 1; i++)
+            {
+                RenderFragmentsRecrusivly(data.root,
+                                      g,
+                                      data.minX, data.minY, data.size,
+                                      (-v.Xpos - 1) * v.Xzoom, (-v.Ypos - 1) * v.Xzoom, 2 * v.Xzoom,
+                                      0,
+                                      false);
+            }
+            for (int k = 0; k < 0; k++)
+            {
+                RenderFragmentsRecrusivly(data.root,
+                                      g,
+                                      data.minX, data.minY, data.size,
+                                      (-v.Xpos - 1) * v.Xzoom, (-v.Ypos - 1) * v.Xzoom, 2 * v.Xzoom,
+                                      0,
+                                      true);
+            }
 
-			transform = v.matrix;
-			g.ResetTransform();
-			//g.Transform = v.matrix;
+            // TESTING: Red bounding box
+        //    g.FillPolygon(new SolidBrush(Color.FromArgb(64, 255, 0, 0)), new PointF[4] { new PointF(-1, -1), new PointF(-1, 1), new PointF(1, 1), new PointF(1, -1) });
+        //    g.DrawLines(new Pen(Color.Red, 0), new PointF[] { new PointF(-1, -1), new PointF(-1, 1), new PointF(-1, 1), new PointF(1, 1), new PointF(1, 1), new PointF(1, -1), new PointF(1, -1), new PointF(-1, -1) });
+            //g.FillPolygon(new SolidBrush(Color.FromArgb(64, 255, 0, 0)), frustum);
+            //g.DrawLines(new Pen(Color.Red, 0), new PointF[] { frustum[0], frustum[1], frustum[1], frustum[2], frustum[2], frustum[3], frustum[3], frustum[0] });
 
-			//g.TranslateTransform(-w/2, -h/2, MatrixOrder.Append);
-			g.ScaleTransform(1/(float)v.Xzoom,1/(float)v.Yzoom, MatrixOrder.Append);
-			zoom = v.Xzoom;
-			//g.TranslateTransform(w/2, h/2, MatrixOrder.Append);
+            g.ResetTransform();
+            //for (int j = 0; j < 1; j++) gr.DrawImage(tmpImage, 0, 0);
+        }
 
-            g.MultiplyTransform (v.matrix, MatrixOrder.Append);
-
-			g.InterpolationMode = InterpolationMode.Bilinear;
-
-			SetFrustum(v);
-
-			// From [-1,1] to [0,w]
-			g.ScaleTransform(w/2, h/2, MatrixOrder.Append);
-			g.TranslateTransform(w/2, h/2, MatrixOrder.Append);
-			
-			g.Clear(Color.White);
-
-			minSize = (double)(16/v.Xzoom/w);
-
-			/*g.TranslateTransform(-w/2, -h/2, MatrixOrder.Append);
-			g.ScaleTransform(0.5f,0.5f, MatrixOrder.Append);
-			g.TranslateTransform(w/2, h/2, MatrixOrder.Append);*/
-
-			RenderFragmentsRecrusivly(root, -2f, -2f, 4,0);
-
-			/*
-			g.TranslateTransform(-w/2, -h/2, MatrixOrder.Append);
-			g.ScaleTransform(0.9f,0.9f, MatrixOrder.Append);
-			g.TranslateTransform(w/2, h/2, MatrixOrder.Append);
-			//g.FillPolygon(new SolidBrush(Color.FromArgb(64,255,0,0)),frustum);
-			g.DrawLines(new Pen(Color.Red,0),new PointF[] {frustum[0],frustum[1],frustum[1],frustum[2],frustum[2],frustum[3],frustum[3],frustum[0]});
-			*/
-			
-		}
-
-		void SetFrustum (View v)
-		{
-			Matrix inverse = transform.Clone();
-			inverse.Invert();
-			frustum = new PointF[4] {new PointF(-1,-1), new PointF(-1,1), new PointF(1,1), new PointF(1,-1)};
-			inverse.TransformPoints(frustum);
-		}
-
-		bool IsOutOfFrustum (double x, double y, double size)
-		{
-			//return false;
-			bool outside;
+        bool IsOutOfFrustum(double x, double y, double size, PointF[] frustum)
+        {
+            return false;
+            bool outside;
 
 			/////////////////////////////////////////////////////
 			/// Test frustum aginst box's planes
@@ -323,5 +306,5 @@ namespace Fractals
 			// Approximatly inside
 			return false;*/
 		}
-	}
+    }
 }

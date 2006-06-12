@@ -93,7 +93,7 @@ namespace Fractals
 	
 	}
 
-/*	public class TempData
+	public class TempData
 	{
 		public Fragment root;
 		public double minX;
@@ -115,21 +115,21 @@ namespace Fractals
 		public void ExtendRoot()
 		{
 			// TODO: Copy data of root to new root
-			Fragment newRoot = new Fragment(root.hasExPalette, root.depth-1);
+			Fragment newRoot = new Fragment();
 
-			newRoot.childLeftTop = new Fragment(root.hasExPalette, root.depth);
-			newRoot.childLeftTop.childRightButtom = root.childLeftTop;
+            newRoot.childLT = new Fragment();
+            newRoot.childLT.childRB = root.childLT;
 
-			newRoot.childRightTop = new Fragment(root.hasExPalette, root.depth);
-			newRoot.childRightTop.childLeftButtom = root.childRightTop;
+            newRoot.childRT = new Fragment();
+            newRoot.childRT.childLB = root.childRT;
 
-			newRoot.childLeftButtom = new Fragment(root.hasExPalette, root.depth);
-			newRoot.childLeftButtom.childRightTop = root.childLeftButtom;
+            newRoot.childLB = new Fragment();
+            newRoot.childLB.childRT = root.childLB;
 
-			newRoot.childRightButtom = new Fragment(root.hasExPalette, root.depth);
-			newRoot.childRightButtom.childLeftTop = root.childRightButtom;
+            newRoot.childRB = new Fragment();
+            newRoot.childRB.childLT = root.childRB;
 
             root = newRoot;
 		}
-	}*/
+	}
 }

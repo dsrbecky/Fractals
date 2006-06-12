@@ -24,7 +24,7 @@ namespace Fractals
 		// Transformation matrix from space to texture coordinates
 		//[NonSerialized] public System.Drawing.Drawing2D.Matrix  matrinx;
 
-		[NonSerialized] public double m11;
+		/*[NonSerialized] public double m11;
 		[NonSerialized] public double m12;
 		[NonSerialized] public double m21;
 		[NonSerialized] public double m22;
@@ -56,7 +56,7 @@ namespace Fractals
 				m.Rotate((float)(Angle), MatrixOrder.Append);
 				return m;
 			}
-		}
+		}*/
 
 		public void Move (double _Xpos,double _Ypos,double _Xzoom,double _Yzoom)
 		{
@@ -65,16 +65,16 @@ namespace Fractals
 			Xzoom = _Xzoom;
 			Yzoom = _Yzoom;
 
-			UpdateTransformationMatrix();
+			//UpdateTransformationMatrix();
 		}
 
-		public void UpdateTransformationMatrix()
+		/*public void UpdateTransformationMatrix()
 		{
 			m11 = Math.Cos(-Angle) / Xzoom;
 			m12 = Math.Sin(-Angle) / Yzoom;
 			m21 = - Math.Sin(-Angle) / Xzoom;
 			m22 = Math.Cos(-Angle) / Yzoom;
-		}
+		}*/
 
 		public double makeX (double pos, double range)
 		{
