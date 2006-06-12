@@ -14,47 +14,38 @@ using System.CodeDom.Compiler;
 namespace Fractals
 {
 	public delegate void EventHandlerNoArg();
-
+	
 	public class MainForm : System.Windows.Forms.Form
-	{		
+	{
 		Thread refreshThread = null;
 		public static SettingsDlg setDlg = new SettingsDlg();
-        bool zooming = false;
-        bool rendering = false;
-        bool rotating {
-            get {
-                View tmp = setDlg.view;
-                return tmp.TargetAngle != tmp.Angle;
-            }
-        }
-		//public Bitmap bitmap;
-		//public object BmpSyncRoot = new object();
-		//float zoomSpeed = 1;
-
+		bool zooming = false;
+		bool rendering = false;
+		bool rotating { 
+			get {
+				View tmp = setDlg.view;
+				return tmp.TargetAngle != tmp.Angle;
+			}
+		}
+		
 		DataGenerator dataGenerator;
-
+		
 		private System.Windows.Forms.MainMenu mainMenu;
 		private System.Windows.Forms.MenuItem menuItemSave;
 		private System.Windows.Forms.MenuItem menuItemSettings;
 		private System.Windows.Forms.MenuItem menuItemAbout;
 		private System.Windows.Forms.MenuItem menuItem1;
-        private System.Windows.Forms.MenuItem menuItem2;
-        private System.ComponentModel.IContainer components;
-
+		private System.Windows.Forms.MenuItem menuItem2;
+		private System.ComponentModel.IContainer components;
+		
 		public MainForm()
 		{
-            /*this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
-            this.SetStyle(ControlStyles.DoubleBuffer, true);
-            this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-            this.SetStyle(ControlStyles.UserPaint, true);
-            this.SetStyle(ControlStyles.ResizeRedraw, true);*/
-
-            InitializeComponent();
+			InitializeComponent();
 			setDlg.ViewChanged += new EventHandlerNoArg(RefreshImage);
 			MouseWheel += new MouseEventHandler (picture_MouseWheel);
-            ClientSize = new Size(512,512);
+			ClientSize = new Size(512,512);
 		}
-
+		
 		
 		protected override void Dispose( bool disposing )
 		{
@@ -67,7 +58,7 @@ namespace Fractals
 			}
 			base.Dispose( disposing );
 		}
-
+		
 		#region Windows Form Designer generated code
 		/// <summary>
 		/// Required method for Designer support - do not modify
@@ -144,120 +135,114 @@ namespace Fractals
 
         }
 		#endregion
-
+		
 		[STAThread]
 		static void Main() 
 		{
 			Application.Run(new MainForm());
-		}		
-
+		}
+		
 		private void picture_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
-            zooming = true;
-            RenderLoop();
+			zooming = true;
+			RenderLoop();
 		}
-
+		
 		private void picture_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
-            zooming = false;
-            RenderLoop();
+			zooming = false;
+			RenderLoop();
 		}
-
+		
 		private void picture_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
 			View tmp = setDlg.view;
 			tmp.TargetAngle += 10*(e.Delta/120);
 			setDlg.view = tmp;
-
-		    RenderLoop();
+			
+			RenderLoop();
 		}
-
+		
 		private void UpdateMotion()
 		{      
-            if (rotating) {
-                View tmp = setDlg.view;
-                while (tmp.Angle - tmp.TargetAngle > 180) {
-                    tmp.Angle -= 360;
-                }
-                while (tmp.Angle - tmp.TargetAngle < -180) {
-                    tmp.Angle += 360;
-                }
-
-                tmp.Angle = (5*tmp.Angle + tmp.TargetAngle) / 6;
-                tmp.Angle -= Math.Sign(tmp.Angle - tmp.TargetAngle) * Math.Min(0.5, Math.Abs(tmp.Angle - tmp.TargetAngle));
-
-                if (Math.Abs(tmp.Angle - tmp.TargetAngle) < 0.1) {
-                    tmp.Angle = tmp.TargetAngle;
-                }
-                setDlg.view = tmp;
-
-                Invalidate();
-            }
-
-            if (zooming) {
-                double zoomSpeed = 1;
-
-                if (MouseButtons == MouseButtons.Left) zoomSpeed = 1+8f/128;
-			    if (MouseButtons == MouseButtons.Middle) zoomSpeed = 1;
-			    if (MouseButtons == MouseButtons.Right) zoomSpeed = 1-8f/128;
-
-                View tmp = setDlg.view;
-			    PointF pos = PointToClient(MousePosition);
-			    //pos.X = (int)(pos.X * 1f/8 + (ClientRectangle.Width/2) * 7f/8);
-			    //pos.Y = (int)(pos.Y * 1f/8 + (ClientRectangle.Height/2) * 7f/8);
-                PointF[] dest = new PointF[] {pos}; // [-1,1] mapping
-                dest[0].X = (((float)pos.X) / ClientRectangle.Width - 0.5f) * 2f / 8;
-                dest[0].Y = (((float)pos.Y) / ClientRectangle.Height - 0.5f) * 2f / 8;
-
-                Matrix matrix = new Matrix();
-                matrix.Rotate((float)(tmp.Angle), MatrixOrder.Append);
-                //matrix.Translate(1, 1, MatrixOrder.Append);
-                //matrix.Scale(ClientRectangle.Width / 2, ClientRectangle.Height / 2, MatrixOrder.Append);
-                matrix.Invert();
-
-                matrix.TransformPoints(dest);
-                tmp.Move(
-                    tmp.makeX(dest[0].X+1d, 2d),
-                    tmp.makeY(dest[0].Y+1d, 2d),
-                    tmp.Xzoom * zoomSpeed,
-				    tmp.Yzoom * zoomSpeed);
-                setDlg.view = tmp;
-
-                Invalidate();
-            }
-            
-        }
-
-        private void Form1_Resize(object sender, System.EventArgs e)
+			if (rotating) {
+				View tmp = setDlg.view;
+				while (tmp.Angle - tmp.TargetAngle > 180) {
+					tmp.Angle -= 360;
+				}
+				while (tmp.Angle - tmp.TargetAngle < -180) {
+					tmp.Angle += 360;
+				}
+				
+				tmp.Angle = (5*tmp.Angle + tmp.TargetAngle) / 6;
+				tmp.Angle -= Math.Sign(tmp.Angle - tmp.TargetAngle) * Math.Min(0.5, Math.Abs(tmp.Angle - tmp.TargetAngle));
+				
+				if (Math.Abs(tmp.Angle - tmp.TargetAngle) < 0.1) {
+					tmp.Angle = tmp.TargetAngle;
+				}
+				setDlg.view = tmp;
+				
+				Invalidate();
+			}
+			
+			if (zooming) {
+				double zoomSpeed = 1;
+				
+				if (MouseButtons == MouseButtons.Left) zoomSpeed = 1+8f/128;
+				if (MouseButtons == MouseButtons.Middle) zoomSpeed = 1;
+				if (MouseButtons == MouseButtons.Right) zoomSpeed = 1-8f/128;
+				
+				View tmp = setDlg.view;
+				PointF pos = PointToClient(MousePosition);
+				//pos.X = (int)(pos.X * 1f/8 + (ClientRectangle.Width/2) * 7f/8);
+				//pos.Y = (int)(pos.Y * 1f/8 + (ClientRectangle.Height/2) * 7f/8);
+				PointF[] dest = new PointF[] {pos}; // [-1,1] mapping
+				dest[0].X = (((float)pos.X) / ClientRectangle.Width - 0.5f) * 2f / 8;
+				dest[0].Y = (((float)pos.Y) / ClientRectangle.Height - 0.5f) * 2f / 8;
+				
+				Matrix matrix = new Matrix();
+				matrix.Rotate((float)(tmp.Angle), MatrixOrder.Append);
+				//matrix.Translate(1, 1, MatrixOrder.Append);
+				//matrix.Scale(ClientRectangle.Width / 2, ClientRectangle.Height / 2, MatrixOrder.Append);
+				matrix.Invert();
+				
+				matrix.TransformPoints(dest);
+				tmp.Move(
+					tmp.makeX(dest[0].X+1d, 2d),
+					tmp.makeY(dest[0].Y+1d, 2d),
+					tmp.Xzoom * zoomSpeed,
+					tmp.Yzoom * zoomSpeed);
+				setDlg.view = tmp;
+				
+				Invalidate();
+			}
+			
+		}
+		
+		private void Form1_Resize(object sender, System.EventArgs e)
 		{
 			Invalidate();
 		}
-
-        public void RefreshImage()
-        {
-            if (refreshThread != null) {
-                dataGenerator.abortFlag = true;
-                refreshThread.Join();
-                dataGenerator.abortFlag = false;
-                refreshThread = null;
-            }
-            if (dataGenerator != null) {
-                dataGenerator.abortFlag = true;
-                dataGenerator = null;
-            }
-
-
-            if (setDlg.GetColorIndex != null)
-                dataGenerator = new DataGenerator(setDlg.GetColorIndex, setDlg.colorPalette);
-            GC.Collect();
-            Invalidate();
-        }
-
-        //private void IvalidateMe()
-		//{
-		//	Invalidate();
-		//}
-
+		
+		public void RefreshImage()
+		{
+			if (refreshThread != null) {
+				dataGenerator.abortFlag = true;
+				refreshThread.Join();
+				dataGenerator.abortFlag = false;
+				refreshThread = null;
+			}
+			if (dataGenerator != null) {
+				dataGenerator.abortFlag = true;
+				dataGenerator = null;
+			}
+			
+			if (setDlg.GetColorIndex != null)
+				dataGenerator = new DataGenerator(setDlg.GetColorIndex, setDlg.colorPalette);
+			GC.Collect();
+			Invalidate();
+		}
+		
 		private void menuSave_Click(object sender, System.EventArgs e)
 		{
 			Thread t = new Thread(new ThreadStart(ThreatSaveEnteryPoint));
@@ -265,7 +250,7 @@ namespace Fractals
 			t.Name = "Save";
 			t.Start();
 		}
-
+		
 		public void ThreatSaveEnteryPoint()
 		{
 			Settings s = setDlg.settings;
@@ -286,100 +271,100 @@ namespace Fractals
 				tbmp.Save(dlg.FileName);
 			}
 		}
-
+		
 		private void Form1_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
 			if (refreshThread != null)
 				refreshThread.Abort();
 		}
-
-        static double FPS = 20d;
-
-        private void Form1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
-        {
-            RenderLoop();
-        }
-
-        void RenderLoop()
+		
+		static double FPS = 20d;
+		
+		private void Form1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
 		{
-            if (rendering) return; // no recusrsion
-            rendering = true;
-
-            if (refreshThread != null) {
-                dataGenerator.abortFlag = true;
-                refreshThread.Join();
-                dataGenerator.abortFlag = false;
-                refreshThread = null;
-            }
-            if (dataGenerator == null) {
-                CreateGraphics().Clear(Color.White);
-                rendering = false;
-                return;
-            }
-            dataGenerator.debugMode = setDlg.chkBoxDebugMode.Checked;
-
-            while (zooming || rotating) {
-                UpdateMotion();
-                long time = dataGenerator.Render(setDlg.view, CreateGraphics(), ClientRectangle.Width, ClientRectangle.Height, FPS + 1);
-                Text = "Fractals 0.5 BETA - " + ((int)(1000d/time)).ToString() + " fps";
-                Application.DoEvents();
-                if (this.IsDisposed) return;
-            } 
-            {
-                Text = "Fractals 0.5 BETA - static";
-                _view = setDlg.view;
-                _w = ClientRectangle.Width;
-                _h = ClientRectangle.Height;
-                refreshThread = new Thread(new ThreadStart(ThreatRefreshEnteryPoint));
-                refreshThread.Name = "Refresh";
-                refreshThread.Priority = ThreadPriority.BelowNormal;
-                refreshThread.Start();
-            }
-
-            rendering = false;
-        }
-
-        View _view;
-        int _w;
-        int _h;
-
-        public void ThreatRefreshEnteryPoint()
-        {
-            dataGenerator.Render(_view , this.CreateGraphics() , _w, _h, 0);
-            System.Diagnostics.Debug.WriteLine("Refresh finished");
-        }
-
-        protected override void OnPaintBackground(PaintEventArgs pevent)
+			RenderLoop();
+		}
+		
+		void RenderLoop()
+		{
+			if (rendering) return; // no recusrsion
+			rendering = true;
+			
+			if (refreshThread != null) {
+				dataGenerator.abortFlag = true;
+				refreshThread.Join();
+				dataGenerator.abortFlag = false;
+				refreshThread = null;
+			}
+			if (dataGenerator == null) {
+				CreateGraphics().Clear(Color.White);
+				rendering = false;
+				return;
+			}
+			dataGenerator.debugMode = setDlg.chkBoxDebugMode.Checked;
+			
+			while (zooming || rotating) {
+				UpdateMotion();
+				long time = dataGenerator.Render(setDlg.view, CreateGraphics(), ClientRectangle.Width, ClientRectangle.Height, FPS + 1);
+				Text = "Fractals 0.5 BETA - " + ((int)(1000d/time)).ToString() + " fps";
+				Application.DoEvents();
+				if (this.IsDisposed) return;
+			} 
+			{
+				Text = "Fractals 0.5 BETA - static";
+				_view = setDlg.view;
+				_w = ClientRectangle.Width;
+				_h = ClientRectangle.Height;
+				refreshThread = new Thread(new ThreadStart(ThreatRefreshEnteryPoint));
+				refreshThread.Name = "Refresh";
+				refreshThread.Priority = ThreadPriority.BelowNormal;
+				refreshThread.Start();
+			}
+			
+			rendering = false;
+		}
+		
+		View _view;
+		int _w;
+		int _h;
+		
+		public void ThreatRefreshEnteryPoint()
+		{
+			dataGenerator.Render(_view , this.CreateGraphics() , _w, _h, 0);
+			System.Diagnostics.Debug.WriteLine("Refresh finished");
+		}
+		
+		protected override void OnPaintBackground(PaintEventArgs pevent)
 		{
 			//base.OnPaintBackground (pevent);
 		}
-
+		
 		private void menuItemAbout_Click(object sender, System.EventArgs e)
 		{
 			MessageBox.Show("Made by David Srbecky","About");
 		}
-
+		
 		private void menuItemSettings_Click(object sender, System.EventArgs e)
 		{		
 			setDlg.Show();
 			setDlg.BringToFront();
 		}
-
+		
 		private void menuItem1_Click(object sender, System.EventArgs e)
 		{
 			Invalidate();
 		}
-
+		
 		private void menuItem2_Click(object sender, System.EventArgs e)
 		{
 			GC.Collect();
 		}
-
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            setDlg.Show();
+		
+		private void MainForm_Load(object sender, EventArgs e)
+		{
+			setDlg.Show();
 			setDlg.BringToFront();
-        }
-
+		}
+		
 	}
 }

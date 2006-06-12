@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -46,7 +46,7 @@
     
     mimetype: application/x-microsoft.net.object.binary.base64
     value   : The object must be serialized with 
-            : System.Serialization.Formatters.Binary.BinaryFormatter
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
     
     mimetype: application/x-microsoft.net.object.soap.base64
@@ -60,6 +60,7 @@
             : and then encoded with base64 encoding.
     -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
@@ -68,9 +69,10 @@
               <xsd:sequence>
                 <xsd:element name="value" type="xsd:string" minOccurs="0" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" />
+              <xsd:attribute name="name" use="required" type="xsd:string" />
               <xsd:attribute name="type" type="xsd:string" />
               <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="assembly">
@@ -85,9 +87,10 @@
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
               <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
               <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
@@ -109,63 +112,55 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="MainCmbBox.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabCommentsTextbox.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabCommentsTextbox.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabCustomCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabCustomCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabColorsCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabColorsCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabViewYzoom.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabViewXzoom.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabViewYpos.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabViewXpos.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabViewYzoom.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabViewXzoom.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabViewYpos.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabViewXpos.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabEqCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="TabEqCode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
-  <metadata name="chkBoxDebugMode.Modifiers" type="System.CodeDom.MemberAttributes, System, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>Public</value>
-  </metadata>
+  <data name="TabColorsCode.Text" xml:space="preserve">
+    <value>static public Color[] c = new Color[65];
+static bool done = false;
+static public void MakeColors()
+{
+	const int gr = 8;
+	if (done) return;
+	done = true;
+	Random r = new Random( 9 );
+	c[0] = Color.FromArgb(r.Next(255),r.Next(255),r.Next(255));
+	for (int i = 0; i &lt; 64;i += gr)
+	{
+		c[i+gr] = Color.FromArgb(r.Next(255),r.Next(255),r.Next(255));
+		for (int j = 1; j &lt; gr; j++)
+			c[i+j] = Color.FromArgb(
+				( c[i].R*(gr-j) + c[i+gr].R*j )/gr,
+				( c[i].G*(gr-j) + c[i+gr].G*j )/gr,
+				( c[i].B*(gr-j) + c[i+gr].B*j )/gr
+				);
+	}
+	//c[64] = c[0];
+	c[64] = Color.Black;
+}</value>
+  </data>
+  <data name="TabEqCode.Text" xml:space="preserve">
+    <value>public static void GetColor(double p, double q,out double r,out double g,out double index)
+{
+	MakeColors();
+	double bigX,bigY;
+	double x=0,y=0;
+	r = 0; g = 0; index = 64;
+	for (int i = 0;i &lt;= 64;i++)
+	{
+		bigX = x*x - y*y + p;
+		bigY = 2*x*y + q;
+		if (double.IsNaN(bigX) || double.IsNaN(bigY))
+		{
+			index = i;
+			return;
+		}
+		x = bigX;
+		y = bigY;
+	}
+	return;
+}</value>
+  </data>
 </root>

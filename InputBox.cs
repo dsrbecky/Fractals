@@ -12,14 +12,14 @@ namespace Fractals
 		public System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Button buttonOK;
 		private System.Windows.Forms.Button buttonCancel;
-	
+		
 		private System.ComponentModel.Container components = null;
-
+		
 		public InputBox()
 		{
 			InitializeComponent();
 		}
-
+		
 		protected override void Dispose( bool disposing )
 		{
 			if( disposing )
@@ -31,7 +31,7 @@ namespace Fractals
 			}
 			base.Dispose( disposing );
 		}
-
+		
 		public static string Show (string label, string defaultValue, string caption)
 		{
 			InputBox form;
@@ -42,7 +42,7 @@ namespace Fractals
 			if (form.ShowDialog() == DialogResult.OK) return form.textBox1.Text;
 												 else return String.Empty;
 		}
-
+		
 		#region Windows Form Designer generated code
 		/// <summary>
 		/// Required method for Designer support - do not modify
@@ -113,13 +113,13 @@ namespace Fractals
 
 		}
 		#endregion
-
+		
 		private void buttonOK_Click(object sender, System.EventArgs e)
 		{
 			this.DialogResult = DialogResult.OK;
 			Close();
 		}
-
+		
 		private void buttonCancel_Click(object sender, System.EventArgs e)
 		{
 			this.DialogResult = DialogResult.Cancel;
