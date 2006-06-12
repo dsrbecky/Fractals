@@ -46,6 +46,18 @@ namespace Fractals
 			}
 		}
 
+		public Matrix matrixWithoutZoom
+		{
+			get
+			{
+				Matrix m = new Matrix();
+				m.Translate((float)-Xpos, (float)-Ypos, MatrixOrder.Append);
+				//m.Scale((float)Xzoom, (float)Yzoom, MatrixOrder.Append);
+				m.Rotate((float)(Angle), MatrixOrder.Append);
+				return m;
+			}
+		}
+
 		public void Move (double _Xpos,double _Ypos,double _Xzoom,double _Yzoom)
 		{
 			Xpos = _Xpos;

@@ -36,8 +36,8 @@ namespace Fractals
 				View _view;
 				_view.Xpos = (double)TabViewXpos.Value;
 				_view.Ypos = (double)TabViewYpos.Value;
-				_view.Xzoom = (double)TabViewXzoom.Value;
-				_view.Yzoom = (double)TabViewYzoom.Value;
+				_view.Xzoom = (double)Math.Pow(2,(double)TabViewXzoom.Value);
+				_view.Yzoom = (double)Math.Pow(2,(double)TabViewYzoom.Value);
 
 				//TODO: do the matrix stuf
 				_view.Angle = TabViewAngle.Value;
@@ -54,8 +54,8 @@ namespace Fractals
 				TabViewXpos.Minimum = TabViewYpos.Minimum = TabViewXzoom.Minimum = TabViewYzoom.Minimum = decimal.MinValue;
 				TabViewXpos.Value = (decimal)value.Xpos;
 				TabViewYpos.Value = (decimal)value.Ypos;
-				TabViewXzoom.Value = (decimal)value.Xzoom;
-				TabViewYzoom.Value = (decimal)value.Yzoom;
+				TabViewXzoom.Value = (decimal)Math.Log(value.Xzoom,2);
+				TabViewYzoom.Value = (decimal)Math.Log(value.Yzoom,2);
 				TabViewAngle.Value = ((int)value.Angle+360)%360;
 				//TODO: set proper values of AA
 				

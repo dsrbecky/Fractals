@@ -23,7 +23,9 @@ namespace Fractals
 		PointF[] frustum = new PointF[4];
 		Matrix transform = new Matrix();
 
-		float minSize;
+		double zoom = 1;
+
+		double minSize;
 
 		public DataGenerator(dlgtGetIndex functionGetIndex)
 		{
@@ -165,9 +167,9 @@ namespace Fractals
 				UpdateFragment(f,x,y,size/Fragment.FragmentSize);
 
 				UpdateBmp(f,depht);
-				UpdateBmp(root,depht);
-				g.FillRectangle(new SolidBrush(Color.Purple),new RectangleF((float)x,(float)y,(float)size,(float)size));
-				g.DrawImage(f.bitmap, new RectangleF((float)x,(float)y,(float)size,(float)size), 
+				//UpdateBmp(root,depht);
+//				g.FillRectangle(new SolidBrush(Color.Purple), new RectangleF((float)(x*zoom),(float)(y*zoom),(float)(size*zoom)/2,(float)(size*zoom)/2));
+				g.DrawImage(f.bitmap, new RectangleF((float)(x*zoom),(float)(y*zoom),(float)(size*zoom),(float)(size*zoom)), 
 							new RectangleF(0,0,Fragment.FragmentSize,Fragment.FragmentSize),
 							GraphicsUnit.Pixel);
 			}
@@ -180,45 +182,63 @@ namespace Fractals
 
 		public void Render(View v, Graphics destGraphic, int w, int h)
 		{
-			//UpdateFragmentsRecrusivly(data.root,-1);
 			g = destGraphic;
-			//g.RotateTransform(45);
-			g.ResetTransform();
-			//g.ScaleTransform(1f/w,1f/h);
-			g.Transform = v.matrix;
+/*			g.ResetTransform();
+			g.Clear(Color.White);
+			g.ScaleTransform((float)v.Xzoom,(float)v.Xzoom);
+			UpdateFragment(root,-2d,-2d,4d/Fragment.FragmentSize);
+			UpdateBmp(root,0);
+			g.DrawImage(root.bitmap, new RectangleF(0,0,(float)(100f/(float)v.Xzoom),(float)(100f/(float)v.Xzoom)), 
+						new RectangleF(0,0,Fragment.FragmentSize,Fragment.FragmentSize),
+						GraphicsUnit.Pixel);
+			g.FillRectangle(new SolidBrush(Color.Purple),new RectangleF(0,(float)(150f/(float)v.Xzoom),(float)(100f/(float)v.Xzoom),(float)(100f/(float)v.Xzoom)));
+
+			return;*/
+
+
+
 			transform = v.matrix;
-			//g.RotateTransform(1);
+			g.ResetTransform();
+			//g.Transform = v.matrix;
+
+			//g.TranslateTransform(-w/2, -h/2, MatrixOrder.Append);
+			g.ScaleTransform(1/(float)v.Xzoom,1/(float)v.Yzoom, MatrixOrder.Append);
+			zoom = v.Xzoom;
+			//g.TranslateTransform(w/2, h/2, MatrixOrder.Append);
+
+            g.MultiplyTransform (v.matrix, MatrixOrder.Append);
+
+			g.InterpolationMode = InterpolationMode.Bilinear;
 
 			SetFrustum(v);
 
+			// From [-1,1] to [0,w]
 			g.ScaleTransform(w/2, h/2, MatrixOrder.Append);
 			g.TranslateTransform(w/2, h/2, MatrixOrder.Append);
-			g.InterpolationMode = InterpolationMode.Bilinear;
-			//g.InterpolationMode = InterpolationMode.NearestNeighbor;
-
-			g.Clear(Color.White);
-			//g.DrawImage(data.root.bitmap ,0 ,0 ,w, h);
-			minSize = (float)(16/v.Xzoom/w);
-
-			g.TranslateTransform(-w/2, -h/2, MatrixOrder.Append);
-			g.ScaleTransform(0.5f,0.5f, MatrixOrder.Append);
-			g.TranslateTransform(w/2, h/2, MatrixOrder.Append);
-
-			//lock(data.syncRoot)
-				RenderFragmentsRecrusivly(root, -4, -4, 8,0);
-
 			
+			g.Clear(Color.White);
+
+			minSize = (double)(16/v.Xzoom/w);
+
+			/*g.TranslateTransform(-w/2, -h/2, MatrixOrder.Append);
+			g.ScaleTransform(0.5f,0.5f, MatrixOrder.Append);
+			g.TranslateTransform(w/2, h/2, MatrixOrder.Append);*/
+
+			RenderFragmentsRecrusivly(root, -2f, -2f, 4,0);
+
+			/*
 			g.TranslateTransform(-w/2, -h/2, MatrixOrder.Append);
 			g.ScaleTransform(0.9f,0.9f, MatrixOrder.Append);
 			g.TranslateTransform(w/2, h/2, MatrixOrder.Append);
 			//g.FillPolygon(new SolidBrush(Color.FromArgb(64,255,0,0)),frustum);
 			g.DrawLines(new Pen(Color.Red,0),new PointF[] {frustum[0],frustum[1],frustum[1],frustum[2],frustum[2],frustum[3],frustum[3],frustum[0]});
+			*/
 			
 		}
 
 		void SetFrustum (View v)
 		{
-			Matrix inverse = g.Transform.Clone();
+			Matrix inverse = transform.Clone();
 			inverse.Invert();
 			frustum = new PointF[4] {new PointF(-1,-1), new PointF(-1,1), new PointF(1,1), new PointF(1,-1)};
 			inverse.TransformPoints(frustum);
@@ -226,6 +246,7 @@ namespace Fractals
 
 		bool IsOutOfFrustum (double x, double y, double size)
 		{
+			//return false;
 			bool outside;
 
 			/////////////////////////////////////////////////////
