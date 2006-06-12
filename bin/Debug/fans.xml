@@ -1,0 +1,32 @@
+<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:clr="http://schemas.microsoft.com/soap/encoding/clr/1.0" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+<SOAP-ENV:Body>
+<a1:View id="ref-1" xmlns:a1="http://schemas.microsoft.com/clr/nsassem/Fractals/Fractals%2C%20Version%3D1.0.1423.25780%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3Dnull">
+<Xpos>-0.104544026815161</Xpos>
+<Ypos>-0.927912845453385</Ypos>
+<Xzoom>4096</Xzoom>
+<Yzoom>4096</Yzoom>
+<AAX>4</AAX>
+<AAY>4</AAY>
+<code id="ref-3">public static void GetColor(double p, double q,out double r,out double g,out double b)
+{
+	double bigX,bigY;
+	double x=0,y=0;
+	r = 0; g = 0; b = 0;
+	for (int i = 0;i &#60;= 64;i++)
+	{
+		bigX = x*x - y*y + p;
+		bigY = 2*x*y + q;
+		if (double.IsNaN(bigX) || double.IsNaN(bigY))
+		{
+			g = i*6;
+			return;
+		}
+		x = bigX;
+		y = bigY;
+	}
+	b = (x + y)*100;
+	return;
+}</code>
+</a1:View>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
