@@ -93,34 +93,42 @@
     <Compile Include="Fragment.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="InputBox.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Settings.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SettingsDlg.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="View.cs">
       <SubType>Code</SubType>
     </Compile>
-    <EmbeddedResource Include="InputBox.resx">
-      <DependentUpon>InputBox.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SettingsDlg.resx">
-      <DependentUpon>SettingsDlg.cs</DependentUpon>
+    <Compile Include="Fractal.cs" />
+    <Compile Include="Util\FileComboBox.Designer.cs">
+      <DependentUpon>FileComboBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Util\FileComboBox.cs" />
+    <EmbeddedResource Include="Util\FileComboBox.resx">
+      <DependentUpon>FileComboBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="SettingsForm.Designer.cs">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SettingsForm.cs" />
+    <EmbeddedResource Include="SettingsForm.resx">
+      <DependentUpon>SettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Util\InputBox.Designer.cs">
+      <DependentUpon>InputBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Util\InputBox.cs" />
+    <EmbeddedResource Include="Util\InputBox.resx">
+      <DependentUpon>InputBox.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.ico" />
     <Content Include="Readme.txt" />
+    <Folder Include="Util" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
 </Project>

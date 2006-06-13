@@ -18,12 +18,12 @@ namespace Fractals
 	public class MainForm : System.Windows.Forms.Form
 	{
 		Thread refreshThread = null;
-		public static SettingsDlg setDlg = new SettingsDlg();
+		public static SettingsForm setDlg = new SettingsForm();
 		bool zooming = false;
 		bool rendering = false;
 		bool rotating { 
 			get {
-				View tmp = setDlg.view;
+				View tmp = setDlg.CurrentFractal.View;
 				return tmp.TargetAngle != tmp.Angle;
 			}
 		}
@@ -41,7 +41,7 @@ namespace Fractals
 		public MainForm()
 		{
 			InitializeComponent();
-			setDlg.ViewChanged += new EventHandlerNoArg(RefreshImage);
+			setDlg.CurrentFractalChanged += new EventHandlerNoArg(RefreshImage);
 			MouseWheel += new MouseEventHandler (picture_MouseWheel);
 			ClientSize = new Size(512,512);
 		}
@@ -156,9 +156,9 @@ namespace Fractals
 		
 		private void picture_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
-			View tmp = setDlg.view;
+			View tmp = setDlg.CurrentFractal.View;
 			tmp.TargetAngle += 10*(e.Delta/120);
-			setDlg.view = tmp;
+			setDlg.CurrentFractal.View = tmp;
 			
 			RenderLoop();
 		}
@@ -166,7 +166,7 @@ namespace Fractals
 		private void UpdateMotion()
 		{      
 			if (rotating) {
-				View tmp = setDlg.view;
+				View tmp = setDlg.CurrentFractal.View;
 				while (tmp.Angle - tmp.TargetAngle > 180) {
 					tmp.Angle -= 360;
 				}
@@ -180,7 +180,7 @@ namespace Fractals
 				if (Math.Abs(tmp.Angle - tmp.TargetAngle) < 0.1) {
 					tmp.Angle = tmp.TargetAngle;
 				}
-				setDlg.view = tmp;
+				setDlg.CurrentFractal.View = tmp;
 				
 				Invalidate();
 			}
@@ -192,7 +192,7 @@ namespace Fractals
 				if (MouseButtons == MouseButtons.Middle) zoomSpeed = 1;
 				if (MouseButtons == MouseButtons.Right) zoomSpeed = 1-8f/128;
 				
-				View tmp = setDlg.view;
+				View tmp = setDlg.CurrentFractal.View;
 				PointF pos = PointToClient(MousePosition);
 				//pos.X = (int)(pos.X * 1f/8 + (ClientRectangle.Width/2) * 7f/8);
 				//pos.Y = (int)(pos.Y * 1f/8 + (ClientRectangle.Height/2) * 7f/8);
@@ -212,7 +212,7 @@ namespace Fractals
 					tmp.makeY(dest[0].Y+1d, 2d),
 					tmp.Xzoom * zoomSpeed,
 					tmp.Yzoom * zoomSpeed);
-				setDlg.view = tmp;
+				setDlg.CurrentFractal.View = tmp;
 				
 				Invalidate();
 			}
@@ -237,8 +237,8 @@ namespace Fractals
 				dataGenerator = null;
 			}
 			
-			if (setDlg.GetColorIndex != null)
-				dataGenerator = new DataGenerator(setDlg.GetColorIndex, setDlg.colorPalette);
+			if (setDlg.CurrentFractal.GetColorIndex != null)
+				dataGenerator = new DataGenerator(setDlg.CurrentFractal.GetColorIndex, setDlg.CurrentFractal.colorPalette);
 			GC.Collect();
 			Invalidate();
 		}
@@ -253,21 +253,21 @@ namespace Fractals
 		
 		public void ThreatSaveEnteryPoint()
 		{
-			Settings s = setDlg.settings;
-			if (setDlg.Method == null)
+			Fractal s = setDlg.CurrentFractal;
+			if (setDlg.CurrentFractal.Method == null)
 			{
 				MessageBox.Show ("Please fix code first");
 				menuItemSettings_Click (null,null);
 				return;
 			}
-			View tmpview = setDlg.view;
+			View tmpview = setDlg.CurrentFractal.View;
 			SaveFileDialog dlg = new SaveFileDialog();
 			dlg.Filter = "Bitmaps | *.bmp";
 			if (dlg.ShowDialog() == DialogResult.OK)
 			{
 				Bitmap tbmp = new Bitmap(1024, 768);
 				Thread.CurrentThread.Priority = ThreadPriority.Lowest;
-				setDlg.Method.Invoke (null, new object[] {tbmp,new object(), tmpview, null});
+				setDlg.CurrentFractal.Method.Invoke (null, new object[] {tbmp,new object(), tmpview, null});
 				tbmp.Save(dlg.FileName);
 			}
 		}
@@ -301,18 +301,18 @@ namespace Fractals
 				rendering = false;
 				return;
 			}
-			dataGenerator.debugMode = setDlg.chkBoxDebugMode.Checked;
+			dataGenerator.debugMode = setDlg.debugMode.Checked;
 			
 			while (zooming || rotating) {
 				UpdateMotion();
-				long time = dataGenerator.Render(setDlg.view, CreateGraphics(), ClientRectangle.Width, ClientRectangle.Height, FPS + 1);
+				long time = dataGenerator.Render(setDlg.CurrentFractal.View, CreateGraphics(), ClientRectangle.Width, ClientRectangle.Height, FPS + 1);
 				Text = "Fractals 0.5 BETA - " + ((int)(1000d/time)).ToString() + " fps";
 				Application.DoEvents();
 				if (this.IsDisposed) return;
 			} 
 			{
 				Text = "Fractals 0.5 BETA - static";
-				_view = setDlg.view;
+				_view = setDlg.CurrentFractal.View;
 				_w = ClientRectangle.Width;
 				_h = ClientRectangle.Height;
 				refreshThread = new Thread(new ThreadStart(ThreatRefreshEnteryPoint));
