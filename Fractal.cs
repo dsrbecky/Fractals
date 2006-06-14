@@ -10,6 +10,8 @@ using System.Xml.Serialization;
 
 namespace Fractals
 {
+	delegate void GetColorIndex(double p, double q,out double r,out double g,out double b);
+	
 	public class Equation
 	{
 		public string Code;
@@ -39,6 +41,9 @@ namespace Fractals
 		Equation equation = new Equation();
 		ColorMap colorMap = new ColorMap();
 		View view = new View();
+		string compileError;
+		
+		public event EventHandler FractalChanged;
 		
 		public Equation Equation {
 			get {
@@ -46,7 +51,7 @@ namespace Fractals
 			}
 			set {
 				equation = value;
-				FireUpdate();
+				OnFractalChanged(EventArgs.Empty);
 			}
 		}
 		
@@ -56,6 +61,7 @@ namespace Fractals
 			}
 			set {
 				view = value;
+				OnFractalChanged(EventArgs.Empty);
 			}
 		}
 		
@@ -65,45 +71,51 @@ namespace Fractals
 			}
 			set {
 				colorMap = value;
+				OnFractalChanged(EventArgs.Empty);
 			}
 		}
 		
-		DataGenerator.dlgtGetIndex getColorIndex;
+		protected virtual void OnFractalChanged(EventArgs e)
+		{
+			CompileCode();
+			if (FractalChanged != null) {
+				FractalChanged(this, e);
+			}
+		}
 		
-		public DataGenerator.dlgtGetIndex GetColorIndex {
+		public bool Compiles {
 			get {
-				if (method == null)
-					UpdateMethod();
-				return getColorIndex;
+				return getColorIndex != null;
 			}
 		}
 		
-		MethodInfo method;
-		
-		public MethodInfo Method {
+		public string CompileError {
 			get {
-				if (method == null)
-					UpdateMethod();
-				return method;
+				return compileError;
 			}
 		}
 		
+		GetColorIndex getColorIndex;
 		[XmlIgnore]
-		public Color[] colorPalette;
+		public Color[] palette;
 		
-		private void FireUpdate()
+		public void GetColorIndex(double p, double q,out double r,out double g,out double b)
 		{
-			method = null;
+			getColorIndex(p, q, out r, out g, out b);
 		}
 		
-		private void UpdateMethod()
+		void CompileCode()
 		{
+			Assembly assembly;
+			getColorIndex = null;
+			palette = null;
+			
 			// Make source code
 			string tmpCode = "using System; using System.Drawing; using System.Drawing.Imaging; " +
 				             "namespace Fractals { class Main { \n" +
 				             equation.Code + "\n" + colorMap.Code + "\n}}";
 			
-			// set parameters
+			// Set parameters
 			CompilerParameters param = new CompilerParameters();
 			//param.IncludeDebugInformation = true;
 			param.GenerateInMemory = true;
@@ -112,29 +124,33 @@ namespace Fractals
 				param.ReferencedAssemblies.Add(name.Name + ".dll");
 			param.ReferencedAssemblies.Add(Assembly.GetCallingAssembly().Location);
 			
-			// compile
+			// Compile
 			ICodeCompiler comp = new Microsoft.CSharp.CSharpCodeProvider().CreateCompiler();
 			CompilerResults res = comp.CompileAssemblyFromSource (param,tmpCode);
-			string output = "";
-			foreach (string s in res.Output) output += s + "\n";
-			if (res.Errors.HasErrors) 
-			{ // Errors	
-				MessageBox.Show(output);
+			compileError = "";
+			foreach (string s in res.Output) {
+				compileError += s + "\n";
 			}
-			else
-			{ // Success
-				Type main = res.CompiledAssembly.GetType("Fractals.Main");
-				method = main.GetMethod("GetColor");
-				MethodInfo MakeColors = main.GetMethod("MakeColors");
-				FieldInfo cInfo = main.GetField("c");
-				if (MakeColors == null || cInfo == null) {
-					colorPalette = new Color[256];
-					for (int i = 0; i < 256; i++) colorPalette[i] = Color.FromArgb(0,0,i);
-				} else {
-					MakeColors.Invoke(null, null);
-					colorPalette = (Color[])cInfo.GetValue(null);
+			if (res.Errors.HasErrors) return;
+			assembly = res.CompiledAssembly;
+			
+			// Update method delegate
+			Type mainClass = assembly.GetType("Fractals.Main");
+			MethodInfo methodGetColor = mainClass.GetMethod("GetColor");
+			getColorIndex = (GetColorIndex)Delegate.CreateDelegate(typeof(GetColorIndex), methodGetColor);
+			
+			// Update color map
+			MethodInfo methodMakeColors = mainClass.GetMethod("MakeColors");
+			FieldInfo cInfo = mainClass.GetField("c");
+			if (methodMakeColors == null || cInfo == null) {
+				Color[] colors = new Color[256];
+				for (int i = 0; i < 256; i++) { 
+					colors[i] = Color.FromArgb(0,0,i);
 				}
-				getColorIndex = (DataGenerator.dlgtGetIndex)Delegate.CreateDelegate(typeof(DataGenerator.dlgtGetIndex),method);
+				palette = colors;
+			} else {
+				methodMakeColors.Invoke(null, null);
+				palette = (Color[])cInfo.GetValue(null);
 			}
 		}
 	}

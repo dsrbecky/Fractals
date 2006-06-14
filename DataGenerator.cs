@@ -13,8 +13,13 @@ namespace Fractals
 {
 	public class DataGenerator
 	{
+		Fractal fractal;
 		public bool debugMode = false;
 		public bool UseDirectX = true;
+		
+		static int userThreadInterval = 10;
+		long lastUserThreadActionTime;
+		public event EventHandler UserThreadAction;
 		
 		[DllImport("kernel32.dll")]
 		private static extern int QueryPerformanceFrequency(out long frequency);
@@ -35,15 +40,21 @@ namespace Fractals
 			return (ticks * 1000) / frequency;
 		}
 		
-		public delegate void dlgtGetIndex(double p, double q,out double r,out double g,out double b);
-		
-		dlgtGetIndex _GetIndex;
-		Color[] palette;
-		
 		// Data identifiers
 		TempData data = new TempData();
 		
-		public bool abortFlag = false;
+		bool aborted = false;
+		
+		public bool Aborted {
+			get {
+				return aborted;
+			}
+		}
+		
+		public void Abort()
+		{
+			aborted = true;
+		}
 		
 		struct BitmapCacheItem {
 			public Bitmap bitmap;
@@ -110,18 +121,15 @@ namespace Fractals
 		}
 		BitmapCache cache = new BitmapCache();
 		
-		public DataGenerator(dlgtGetIndex functionGetIndex, Color[] palette)
+		public DataGenerator(Fractal fractal)
 		{
-			_GetIndex = functionGetIndex;
-			this.palette = new Color[256];
-			for (int i = 0; i < 256; i++) this.palette[i] = Color.Black;
-			palette.CopyTo(this.palette, 0);
+			this.fractal = fractal;
 		}
 		
 		byte GetIndex(double p, double q)
 		{
 			double r,g,index;
-			_GetIndex (p,q,out r,out g,out index);
+			fractal.GetColorIndex(p,q,out r,out g,out index);
 			return Math.Min((byte)255,Math.Max((byte)0,(byte)index));
 		}
 		
@@ -168,13 +176,13 @@ namespace Fractals
 					f.data[(x + Fragment.FragmentSize*y)/4] = color4;
 					
 					for (int i = 0; i <= 24; i += 8) {
-						minR = Math.Min(minR, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].R);
-						minG = Math.Min(minG, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].G);
-						minB = Math.Min(minB, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].B);
+						minR = Math.Min(minR, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].R);
+						minG = Math.Min(minG, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].G);
+						minB = Math.Min(minB, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].B);
 						
-						maxR = Math.Max(maxR, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].R);
-						maxG = Math.Max(maxG, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].G);
-						maxB = Math.Max(maxB, palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].B);
+						maxR = Math.Max(maxR, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].R);
+						maxG = Math.Max(maxG, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].G);
+						maxB = Math.Max(maxB, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].B);
 					}
 					//if (color4 != first) f.allTheSame = false;
 					//if (Math.Abs(color4 - first) > 5) f.allTheSame = false;
@@ -267,7 +275,7 @@ namespace Fractals
 			uint color4;
 			color4 = f.data[(x - x%4 + Fragment.FragmentSize*y)/4];
 			
-			return palette[(color4 & (0xFF << (8 * (3 - x%4)))) / (0x01 << (8 * (3 - x%4)))];
+			return fractal.palette[(color4 & (0xFF << (8 * (3 - x%4)))) / (0x01 << (8 * (3 - x%4)))];
 		}
 		
 		long     timeToAbort;
@@ -285,8 +293,14 @@ namespace Fractals
 		
 		void RenderFragmentsRecrusivly(Fragment f, double dataX, double dataY, double dataSize, double renderX, double renderY, double renderSize, int depht, bool doVisiblityTest)
 		{
+			if (GetTicks() > lastUserThreadActionTime + userThreadInterval) {
+				lastUserThreadActionTime = GetTicks();
+				if (UserThreadAction != null) {
+					UserThreadAction(this, EventArgs.Empty);
+				}
+			}
 			if (f == null) return;
-			if (abortFlag) return;
+			if (aborted) return;
 			if (abortAllowed && GetTicks() > timeToAbort) return;
 			
 			bool completlyInside;
@@ -367,6 +381,8 @@ namespace Fractals
 		
 		public long Render(View v, Graphics destGraphics, int w, int h, double FPS)
 		{
+			if (aborted) return 0;
+			
 			visibleSize = (((double)Fragment.FragmentSize*2)/(double)Math.Min(w,h));
 			System.Diagnostics.Debug.WriteLine("visibleSize = " + visibleSize.ToString());
 			
@@ -388,7 +404,7 @@ namespace Fractals
 			
 			// Extra transformation
 			extraTransformation = new Matrix();
-			extraTransformation.Rotate((float)(v.Angle), MatrixOrder.Append);
+			extraTransformation.Rotate((float)(v.CurrentAngle), MatrixOrder.Append);
 			
 			g.MultiplyTransform(extraTransformation, MatrixOrder.Append);
 			
@@ -450,7 +466,7 @@ namespace Fractals
 				
 				/// Multiple passes to incerase quality
 				/// ----------------------------------
-				while (finishedInTime && !abortFlag)
+				while (finishedInTime && !aborted)
 				{
 					abortAllowed   = true;
 					doAntiAliasing = true;

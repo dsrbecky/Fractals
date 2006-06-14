@@ -14,28 +14,6 @@ namespace Fractals
 		static XmlSerializer xmlEquationSerializer = new XmlSerializer(typeof(Equation));
 		static XmlSerializer xmlColorMapSerializer = new XmlSerializer(typeof(ColorMap));
 		
-		Fractal currentFractal = new Fractal();
-		
-		public event EventHandlerNoArg CurrentFractalChanged;
-		
-		public Fractal CurrentFractal {
-			get {
-				return currentFractal;
-			}
-			set {
-				currentFractal = value;
-				OnCurrentFractalChanged();
-			}
-		}
-		
-		protected virtual void OnCurrentFractalChanged()
-		{
-			if (CurrentFractalChanged != null) {
-				CurrentFractalChanged();
-			}
-		}
-		
-		
 		public SettingsForm()
 		{
 			InitializeComponent();
@@ -54,51 +32,47 @@ namespace Fractals
 		
 		void FractalFileComboBoxLoading(object sender, Fractals.Util.TextReaderEventArgs e)
 		{
-			currentFractal = (Fractal)xmlFractalSerializer.Deserialize(e.TextReader);
-			equationCode.Text = currentFractal.Equation.Code.Replace("\n", "\r\n");
-			colorCode.Text = currentFractal.ColorMap.Code.Replace("\n", "\r\n");
-			OnCurrentFractalChanged();
+			CurrentFractalSingleton.Instance = (Fractal)xmlFractalSerializer.Deserialize(e.TextReader);
+			equationCode.Text = CurrentFractalSingleton.Instance.Equation.Code.Replace("\n", "\r\n");
+			colorCode.Text = CurrentFractalSingleton.Instance.ColorMap.Code.Replace("\n", "\r\n");
 		}
 		
 		void FractalFileComboBoxSaving(object sender, Fractals.Util.TextWriterEventArgs e)
 		{
-			xmlFractalSerializer.Serialize(e.TextWriter, currentFractal);
+			xmlFractalSerializer.Serialize(e.TextWriter, CurrentFractalSingleton.Instance);
 		}
 		
 		void EquationFileComboBoxLoading(object sender, Fractals.Util.TextReaderEventArgs e)
 		{
-			currentFractal.Equation = (Equation)xmlEquationSerializer.Deserialize(e.TextReader);
-			equationCode.Text = currentFractal.Equation.Code.Replace("\n", "\r\n");
-			OnCurrentFractalChanged();
+			CurrentFractalSingleton.Instance.Equation = (Equation)xmlEquationSerializer.Deserialize(e.TextReader);
+			equationCode.Text = CurrentFractalSingleton.Instance.Equation.Code.Replace("\n", "\r\n");
 		}
 		
 		void EquationFileComboBoxSaving(object sender, Fractals.Util.TextWriterEventArgs e)
 		{
-			xmlEquationSerializer.Serialize(e.TextWriter, currentFractal.Equation);
+			xmlEquationSerializer.Serialize(e.TextWriter, CurrentFractalSingleton.Instance.Equation);
 		}
 		
 		void ColorFileComboBoxLoading(object sender, Fractals.Util.TextReaderEventArgs e)
 		{
-			currentFractal.ColorMap = (ColorMap)xmlColorMapSerializer.Deserialize(e.TextReader);
-			colorCode.Text = currentFractal.ColorMap.Code.Replace("\n", "\r\n");
-			OnCurrentFractalChanged();
+			CurrentFractalSingleton.Instance.ColorMap = (ColorMap)xmlColorMapSerializer.Deserialize(e.TextReader);
+			colorCode.Text = CurrentFractalSingleton.Instance.ColorMap.Code.Replace("\n", "\r\n");
 		}
 		
 		void ColorFileComboBoxSaving(object sender, Fractals.Util.TextWriterEventArgs e)
 		{
-			xmlColorMapSerializer.Serialize(e.TextWriter, currentFractal.ColorMap);
+			xmlColorMapSerializer.Serialize(e.TextWriter, CurrentFractalSingleton.Instance.ColorMap);
 		}
 		
 		void DebugModeCheckedChanged(object sender, System.EventArgs e)
 		{
-			OnCurrentFractalChanged();
+			ApplyCodeChanges();
 		}
 		
 		void ApplyCodeChanges()
 		{
-			currentFractal.Equation = new Equation(equationCode.Text);
-			currentFractal.ColorMap = new ColorMap(colorCode.Text);
-			OnCurrentFractalChanged();
+			CurrentFractalSingleton.Instance.Equation = new Equation(equationCode.Text);
+			CurrentFractalSingleton.Instance.ColorMap = new ColorMap(colorCode.Text);
 		}
 		
 		void BtnApplyClick(object sender, System.EventArgs e)
