@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -15,33 +16,13 @@ namespace Fractals
 	{
 		Fractal fractal;
 		public bool debugMode = false;
-		public bool UseDirectX = true;
 		
 		static int userThreadInterval = 10;
 		long lastUserThreadActionTime;
 		public event EventHandler UserThreadAction;
 		
-		[DllImport("kernel32.dll")]
-		private static extern int QueryPerformanceFrequency(out long frequency);
-		
-		[DllImport("kernel32.dll")]
-		private static extern int QueryPerformanceCounter(out long tick);
-		
-		private long GetTicks()
-		{
-			long ticks;
-			long frequency;
-			QueryPerformanceFrequency(out frequency);
-			if (frequency == 0)
-			{
-				return DateTime.Now.Ticks / 10000;
-			}
-			QueryPerformanceCounter(out ticks);
-			return (ticks * 1000) / frequency;
-		}
-		
 		// Data identifiers
-		TempData data = new TempData();
+		DataTree data = new DataTree();
 		
 		bool aborted = false;
 		
@@ -56,70 +37,12 @@ namespace Fractals
 			aborted = true;
 		}
 		
-		struct BitmapCacheItem {
-			public Bitmap bitmap;
-			public int x;
-			public int y;
+		private long GetTicks()
+		{
+			return Environment.TickCount;
 		}
 		
-		class BitmapCache {
-			const int cacheWidth = 15;
-			const int cachesCount = 8;
-			const int BitmapSize = Fragment.BitmapSize;
-			
-			const int cacheSizex = cacheWidth * cacheWidth * cachesCount;
-			public const int cachePitch = cacheWidth * BitmapSize;
-			
-			Bitmap[] caches = new Bitmap[cachesCount];
-			Fragment[] parentFragment = new Fragment[cacheSizex];
-			
-			public int nextCacheIndex = 0;
-			
-			public BitmapCache()
-			{
-				for (int i = 0; i < cachesCount; i++) {
-					caches[i] = new Bitmap(cacheWidth * BitmapSize,
-										   cacheWidth * BitmapSize,
-										   PixelFormat.Format32bppPArgb);
-				}
-			}
-			
-			public void ReleaseCache(Fragment fragment) 
-			{
-				if (fragment.bitmapID != -1) {
-					parentFragment[fragment.bitmapID] = null;
-					fragment.bitmapID = -1;
-				}
-			}
-			
-			public BitmapCacheItem AllocateNew(Fragment fragment)
-			{
-				int index = nextCacheIndex;
-				if (parentFragment[index] != null) {
-					parentFragment[index].bitmapID = -1;
-				}
-				parentFragment[index] = fragment;
-				parentFragment[index].bitmapID = index;
-				
-				nextCacheIndex = (nextCacheIndex + 1)%cacheSizex;
-				//System.Diagnostics.Debug.WriteLine("Bitmap cached: ID=" + (index).ToString());
-				
-				return this[index];
-			}
-			
-			public BitmapCacheItem this [int bitmapID] {
-				get {
-					BitmapCacheItem ret;
-					
-					ret.bitmap = caches[bitmapID / (cacheWidth * cacheWidth)];
-					ret.x = (bitmapID % cacheWidth) * BitmapSize; 
-					ret.y = ((bitmapID % (cacheWidth * cacheWidth)) / cacheWidth) * BitmapSize;
-					
-					return ret;
-				}
-			}
-		}
-		BitmapCache cache = new BitmapCache();
+		BitmapCache bitmapCache = new BitmapCache();
 		
 		public DataGenerator(Fractal fractal)
 		{
@@ -196,15 +119,13 @@ namespace Fractals
 		
 		unsafe void UpdateBmp(Fragment f, int depth)
 		{
-			if (f.bitmapID != -1) return;
+			if (bitmapCache.IsCached(f)) return;
 			
 			Bitmap bitmap = new Bitmap(Fragment.BitmapSize, Fragment.BitmapSize, PixelFormat.Format32bppRgb);
 			BitmapData bmpData = bitmap.LockBits(new Rectangle(0,0,Fragment.BitmapSize, Fragment.BitmapSize),ImageLockMode.WriteOnly,PixelFormat.Format32bppArgb);
 			UInt32* ptr = (UInt32*) bmpData.Scan0.ToPointer();
-			for(int y = 0;y < Fragment.BitmapSize;y += 1)
-			{
-				for(int x = 0;x < Fragment.BitmapSize;x += 1)
-				{
+			for(int y = 0;y < Fragment.BitmapSize;y += 1) {
+				for(int x = 0;x < Fragment.BitmapSize;x += 1) {
 					uint k;
 					if (debugMode) {
 						k = (uint)(16*depth)*0x100;
@@ -214,7 +135,7 @@ namespace Fractals
 						k = 0;
 					}                    
 					
-					if (x == Fragment.FragmentSize)	{
+					if (x == Fragment.FragmentSize) {
 						*ptr = *(ptr-1); ptr++;
 					} else if (y == Fragment.FragmentSize) {
 						*ptr = *(ptr-Fragment.BitmapSize); ptr++;
@@ -226,10 +147,9 @@ namespace Fractals
 			bitmap.UnlockBits(bmpData);
 			
 			// save to cache
-			BitmapCacheItem c = cache.AllocateNew(f);
-			Graphics.FromImage(c.bitmap).DrawImage(bitmap, c.x, c.y);
+			BitmapCacheItem c = bitmapCache.AllocateCache(f);
+			Graphics.FromImage(c.Bitmap).DrawImage(bitmap, c.X , c.Y);
 			bitmap.Dispose();
-			bitmap = null;
 		}
 		
 		Color GetColorAA(Fragment f, int x, int y, int levelsOfAA)
@@ -243,15 +163,15 @@ namespace Fractals
 			int srcY = (y*2)%Fragment.FragmentSize;
 			if (x < Fragment.FragmentSize/2) {
 				if (y < Fragment.FragmentSize/2) {
-					srcF = f.childLT;
+					srcF = f.ChildLT;
 				} else {
-					srcF = f.childLB;
+					srcF = f.ChildLB;
 				}                
 			} else {
 				if (y < Fragment.FragmentSize/2) {
-					srcF = f.childRT;
+					srcF = f.ChildRT;
 				} else {
-					srcF = f.childRB;
+					srcF = f.ChildRB;
 				}
 			}
 			if (srcF != null && srcF.done != 0) {
@@ -336,27 +256,26 @@ namespace Fractals
 			
 			// Anti-aliasing - do all subpixels before
 			if (lastVisible && !lastRecrusion) {
-				RenderFragmentsRecrusivly (f.childLT, dataX              , dataY              , dataSize/2, renderX                , renderY                , renderSize/2, depht + 1, !completlyInside);
-				RenderFragmentsRecrusivly (f.childRT, dataX + dataSize/2 , dataY              , dataSize/2, renderX + renderSize/2 , renderY                , renderSize/2, depht + 1, !completlyInside);
-				RenderFragmentsRecrusivly (f.childLB, dataX              , dataY + dataSize/2 , dataSize/2, renderX                , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
-				RenderFragmentsRecrusivly (f.childRB, dataX + dataSize/2 , dataY + dataSize/2 , dataSize/2, renderX + renderSize/2 , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
+				RenderFragmentsRecrusivly (f.ChildLT, dataX              , dataY              , dataSize/2, renderX                , renderY                , renderSize/2, depht + 1, !completlyInside);
+				RenderFragmentsRecrusivly (f.ChildRT, dataX + dataSize/2 , dataY              , dataSize/2, renderX + renderSize/2 , renderY                , renderSize/2, depht + 1, !completlyInside);
+				RenderFragmentsRecrusivly (f.ChildLB, dataX              , dataY + dataSize/2 , dataSize/2, renderX                , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
+				RenderFragmentsRecrusivly (f.ChildRB, dataX + dataSize/2 , dataY + dataSize/2 , dataSize/2, renderX + renderSize/2 , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
 				
-				cache.ReleaseCache(f); //Force bitmap recreation to apply AA
+				bitmapCache.ReleaseCache(f); //Force bitmap recreation to apply AA
 			}
 			
 			if (abortAllowed && GetTicks() > timeToAbort) return;
 			
 			if ((!f.HasAllChilds || lastRecrusion || abortAllowed) && (!skipDrawing || lastVisible) && !invisible)
 			{
-				cache.ReleaseCache(f);
 				UpdateBmp(f, depht);
 				if (simulation == false) {
-					BitmapCacheItem c = cache[f.bitmapID];
-					g.DrawImage(c.bitmap,
+					BitmapCacheItem c = bitmapCache[f];
+					g.DrawImage(c.Bitmap,
 								new PointF[] {new PointF( (float)renderX, (float)renderY ),
 											  new PointF( (float)renderX + (float)renderSize, (float)renderY ),
 											  new PointF( (float)renderX, (float)renderY + (float)renderSize )},
-								new RectangleF(c.x, c.y, Fragment.FragmentSize, Fragment.FragmentSize),
+								new RectangleF(c.X, c.Y, Fragment.FragmentSize, Fragment.FragmentSize),
 								GraphicsUnit.Pixel);
 				}
 			}
@@ -364,10 +283,10 @@ namespace Fractals
 			
 			// Normal - do subpixels after
 			if (!lastVisible) {
-				RenderFragmentsRecrusivly (f.childLT, dataX              , dataY              , dataSize/2, renderX                , renderY                , renderSize/2, depht + 1, !completlyInside);
-				RenderFragmentsRecrusivly (f.childRT, dataX + dataSize/2 , dataY              , dataSize/2, renderX + renderSize/2 , renderY                , renderSize/2, depht + 1, !completlyInside);
-				RenderFragmentsRecrusivly (f.childLB, dataX              , dataY + dataSize/2 , dataSize/2, renderX                , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
-				RenderFragmentsRecrusivly (f.childRB, dataX + dataSize/2 , dataY + dataSize/2 , dataSize/2, renderX + renderSize/2 , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
+				RenderFragmentsRecrusivly (f.ChildLT, dataX              , dataY              , dataSize/2, renderX                , renderY                , renderSize/2, depht + 1, !completlyInside);
+				RenderFragmentsRecrusivly (f.ChildRT, dataX + dataSize/2 , dataY              , dataSize/2, renderX + renderSize/2 , renderY                , renderSize/2, depht + 1, !completlyInside);
+				RenderFragmentsRecrusivly (f.ChildLB, dataX              , dataY + dataSize/2 , dataSize/2, renderX                , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
+				RenderFragmentsRecrusivly (f.ChildRB, dataX + dataSize/2 , dataY + dataSize/2 , dataSize/2, renderX + renderSize/2 , renderY + renderSize/2 , renderSize/2, depht + 1, !completlyInside);
 			}
 		}
 		
@@ -436,9 +355,9 @@ namespace Fractals
 				initalSize     = double.MaxValue;
 				terminalSize   = compulsorySize;
 				
-				RenderFragmentsRecrusivly(data.root,
-									  data.minX, data.minY, data.size,
-									  (-v.Xpos + data.minX) * v.Xzoom, (-v.Ypos + data.minY) * v.Xzoom, 2 * v.Xzoom * data.size / 2,
+				RenderFragmentsRecrusivly(data.Root,
+									  -data.Size / 2, -data.Size / 2, data.Size,
+									  (-v.Xpos + -data.Size / 2) * v.Xzoom, (-v.Ypos + -data.Size / 2) * v.Xzoom, 2 * v.Xzoom * data.Size / 2,
 									  0, true);
 				
 				finishedInTime = GetTicks() < timeToAbort;
@@ -460,8 +379,8 @@ namespace Fractals
 				terminalSize   = compulsorySize;
 				
 				RenderFragmentsRecrusivly(data.root,
-									  data.minX, data.minY, data.size,
-									  (-v.Xpos + data.minX) * v.Xzoom, (-v.Ypos + data.minY) * v.Xzoom, 2 * v.Xzoom * data.size / 2,
+									  -data.size / 2, -data.size / 2, data.size,
+									  (-v.Xpos + -data.size / 2) * v.Xzoom, (-v.Ypos + -data.size / 2) * v.Xzoom, 2 * v.Xzoom * data.size / 2,
 									  0, true);*/
 				
 				/// Multiple passes to incerase quality
@@ -476,9 +395,9 @@ namespace Fractals
 					
 					if (terminalSize < visibleSize/4) break;
 					
-					RenderFragmentsRecrusivly(data.root,
-										data.minX, data.minY, data.size,
-										(-v.Xpos + data.minX) * v.Xzoom, (-v.Ypos + data.minY) * v.Xzoom, 2 * v.Xzoom * data.size / 2,
+					RenderFragmentsRecrusivly(data.Root,
+										-data.Size / 2, -data.Size / 2, data.Size,
+										(-v.Xpos + -data.Size / 2) * v.Xzoom, (-v.Ypos + -data.Size / 2) * v.Xzoom, 2 * v.Xzoom * data.Size / 2,
 										0, true);
 					
 					finishedInTime = GetTicks() < timeToAbort;
@@ -494,9 +413,9 @@ namespace Fractals
 			for (int k = 0; k < 0; k++)
 			{
 				simulation = true;
-				RenderFragmentsRecrusivly(data.root,
-									  data.minX, data.minY, data.size,
-									  (-v.Xpos + data.minX) * v.Xzoom, (-v.Ypos + data.minY) * v.Xzoom, 2 * v.Xzoom * data.size / 2,
+				RenderFragmentsRecrusivly(data.Root,
+									  -data.Size / 2, -data.Size / 2, data.Size,
+									  (-v.Xpos + -data.Size / 2) * v.Xzoom, (-v.Ypos + -data.Size / 2) * v.Xzoom, 2 * v.Xzoom * data.Size / 2,
 									  0, true);
 			}
 			

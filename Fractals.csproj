@@ -123,6 +123,7 @@
     </Compile>
     <Compile Include="MainForm.cs" />
     <Compile Include="CurrentFractalSingleton.cs" />
+    <Compile Include="BitmapCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.ico" />

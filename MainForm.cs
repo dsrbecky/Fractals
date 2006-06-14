@@ -18,8 +18,7 @@ namespace Fractals
 		static double FPS = 20d;
 		public static SettingsForm settingsForm = new SettingsForm();
 		bool zooming = false;
-		
-		DataGenerator dataGenerator;
+		bool restartRenderLoop = false;
 		
 		public MainForm()
 		{
@@ -93,27 +92,22 @@ namespace Fractals
 			}
 		}
 		
-		bool restartRenderLoop = false;
-		
 		public void RestartRenderLoop()
 		{
-			if (dataGenerator != null) {
-				dataGenerator.Abort();
-			}
 			restartRenderLoop = true;
 		}
 		
 		void RenderLoop()
 		{
-			Graphics graphics = CreateGraphics();
 			while(!this.IsDisposed) {
+				Graphics graphics = CreateGraphics();
 				restartRenderLoop = false;
 				if (CurrentFractalSingleton.Instance.Compiles) {
-					dataGenerator = new DataGenerator(CurrentFractalSingleton.Instance);
+					DataGenerator dataGenerator = new DataGenerator(CurrentFractalSingleton.Instance);
 					dataGenerator.debugMode = settingsForm.debugMode.Checked;
 					dataGenerator.UserThreadAction += delegate {
 						Application.DoEvents();
-						if (this.IsDisposed) {
+						if (this.IsDisposed || restartRenderLoop) {
 							dataGenerator.Abort();
 						}
 					};
@@ -135,7 +129,7 @@ namespace Fractals
 				} else {
 					graphics.Clear(Color.White);
 				}
-				while(!restartRenderLoop) {
+				while(!restartRenderLoop && !this.IsDisposed) {
 					Application.DoEvents();
 					Thread.Sleep(10);
 				}
