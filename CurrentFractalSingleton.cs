@@ -4,12 +4,15 @@ namespace Fractals
 {
 	public static class CurrentFractalSingleton
 	{
-		static Fractal instance = new Fractal();
+		static Fractal instance;
 		
 		public static event EventHandler CurrentFractalChanged;
 		
 		public static Fractal Instance {
 			get {
+				if (instance == null) {
+					instance = new Fractal();
+				}
 				return instance;
 			}
 			set {

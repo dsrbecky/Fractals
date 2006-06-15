@@ -2,7 +2,6 @@
 <Equation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Code>public static void GetColor(double p, double q,out double r,out double g,out double index)
 {
-	MakeColors();
 	double bigX,bigY;
 	double x=0,y=0;
 	r = 0; g = 0; index = 64;

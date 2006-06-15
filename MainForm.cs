@@ -16,13 +16,14 @@ namespace Fractals
 	public partial class MainForm
 	{
 		static double FPS = 20d;
-		public static SettingsForm settingsForm = new SettingsForm();
+		public static SettingsForm settingsForm;
 		bool zooming = false;
 		bool restartRenderLoop = false;
 		
 		public MainForm()
 		{
 			InitializeComponent();
+			settingsForm = new SettingsForm();
 			CurrentFractalSingleton.CurrentFractalChanged += delegate{ RestartRenderLoop(); };
 			MouseWheel += new MouseEventHandler (picture_MouseWheel);
 			ClientSize = new Size(512,512);

@@ -21,7 +21,6 @@ namespace Fractals
 		long lastUserThreadActionTime;
 		public event EventHandler UserThreadAction;
 		
-		// Data identifiers
 		DataTree data = new DataTree();
 		
 		bool aborted = false;
@@ -49,72 +48,36 @@ namespace Fractals
 			this.fractal = fractal;
 		}
 		
-		byte GetIndex(double p, double q)
-		{
-			double r,g,index;
-			fractal.GetColorIndex(p,q,out r,out g,out index);
-			return Math.Min((byte)255,Math.Max((byte)0,(byte)index));
-		}
-		
-		uint GetColor4(double p, double q, double width)
-		{
-			uint color4;
-			color4 = 0;
-			
-			color4 += GetIndex(p,q);
-			p += width;
-			color4 *= 0x100;
-			color4 += GetIndex(p,q);
-			p += width;
-			color4 *= 0x100;
-			color4 += GetIndex(p,q);
-			p += width;
-			color4 *= 0x100;
-			color4 += GetIndex(p,q);
-			
-			return color4;
-		}
-		
 		void UpdateFragment(Fragment f, double X, double Y, double size)
 		{
-			if (f.done == 0xFFFF) return;
+			if (f.done) return;
 			//if (IsOutOfFrustum((float)X,(float)Y,(float)size,(float)size)) return;
 			
-			//Console.WriteLine("     - Updaing: X=" + X.ToString() + " Y=" + Y.ToString() + " size=" + size.ToString());
-			
 			int minR, minG, minB;
-			minR = minG = minB = 256;
 			int maxR, maxG, maxB;
+			minR = minG = minB = 256;
 			maxR = maxG = maxB = 0;
-			f.allTheSame = true;
-			uint first = GetColor4(X, Y, size);
 			
-			for(int y = 0;y < Fragment.FragmentSize;y += 1)
-			{
-				for(int x = 0;x < Fragment.FragmentSize;x += 4)
-				{
-					uint color4 = GetColor4(X+x*size,
-						Y+y*size,
-						size);
-					f.data[(x + Fragment.FragmentSize*y)/4] = color4;
+			for(int y = 0; y < Fragment.FragmentSize; y += 1) {
+				for(int x = 0; x < Fragment.FragmentSize; x += 1) {
+					ColorIndex index = fractal.Equation.GetColorIndex(X + x * size, Y + y * size);
+					f.SetColorIndex(x, y, index);
 					
-					for (int i = 0; i <= 24; i += 8) {
-						minR = Math.Min(minR, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].R);
-						minG = Math.Min(minG, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].G);
-						minB = Math.Min(minB, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].B);
-						
-						maxR = Math.Max(maxR, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].R);
-						maxG = Math.Max(maxG, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].G);
-						maxB = Math.Max(maxB, fractal.palette[(color4 & (0xFFu<<i)) / (0x01u<<i)].B);
-					}
-					//if (color4 != first) f.allTheSame = false;
-					//if (Math.Abs(color4 - first) > 5) f.allTheSame = false;
+					Color color = fractal.ColorMap.GetColorFromIndex(index);
+					
+					minR = Math.Min(minR, color.R);
+					minG = Math.Min(minG, color.G);
+					minB = Math.Min(minB, color.B);
+					
+					maxR = Math.Max(maxR, color.R);
+					maxG = Math.Max(maxG, color.G);
+					maxB = Math.Max(maxB, color.B);
 				}
 			}
 			int AAdiff = 5;
 			f.allTheSame = ((maxR - minR) < AAdiff) && ((maxG - minG) < AAdiff) && ((maxB - minB) < AAdiff);
 			
-			f.done = 0xFFFF;
+			f.done = true;
 		}
 		
 		unsafe void UpdateBmp(Fragment f, int depth)
@@ -124,16 +87,9 @@ namespace Fractals
 			Bitmap bitmap = new Bitmap(Fragment.BitmapSize, Fragment.BitmapSize, PixelFormat.Format32bppRgb);
 			BitmapData bmpData = bitmap.LockBits(new Rectangle(0,0,Fragment.BitmapSize, Fragment.BitmapSize),ImageLockMode.WriteOnly,PixelFormat.Format32bppArgb);
 			UInt32* ptr = (UInt32*) bmpData.Scan0.ToPointer();
-			for(int y = 0;y < Fragment.BitmapSize;y += 1) {
-				for(int x = 0;x < Fragment.BitmapSize;x += 1) {
-					uint k;
-					if (debugMode) {
-						k = (uint)(16*depth)*0x100;
-						//k += ((x+y)%2 == 0)?0x7Fu:0;
-						//k += ((x+y)%4 == 0)?0x7Fu:0;
-					} else {
-						k = 0;
-					}                    
+			for(int y = 0; y < Fragment.BitmapSize; y += 1) {
+				for(int x = 0; x < Fragment.BitmapSize; x += 1) {
+					uint k = debugMode ? (uint)depth*0x1000 : 0;
 					
 					if (x == Fragment.FragmentSize) {
 						*ptr = *(ptr-1); ptr++;
@@ -155,7 +111,7 @@ namespace Fractals
 		Color GetColorAA(Fragment f, int x, int y, int levelsOfAA)
 		{
 			if (levelsOfAA <= 0 || !doAntiAliasing) {
-				return GetColor(f,x,y);
+				return fractal.ColorMap.GetColorFromIndex(f.GetColorIndex(x, y));
 			}
 			
 			Fragment srcF;
@@ -174,7 +130,7 @@ namespace Fractals
 					srcF = f.ChildRB;
 				}
 			}
-			if (srcF != null && srcF.done != 0) {
+			if (srcF != null && srcF.done) {
 				Color color1 = GetColorAA(srcF, srcX + 0, srcY + 0, levelsOfAA - 1);
 				Color color2 = GetColorAA(srcF, srcX + 0, srcY + 1, levelsOfAA - 1);
 				Color color3 = GetColorAA(srcF, srcX + 1, srcY + 0, levelsOfAA - 1);
@@ -186,16 +142,8 @@ namespace Fractals
 				
 				return Color.FromArgb(r,g,b);
 			} else {
-				return GetColor(f,x,y);
+				return fractal.ColorMap.GetColorFromIndex(f.GetColorIndex(x, y));
 			}
-		}
-		
-		Color GetColor(Fragment f, int x, int y)
-		{
-			uint color4;
-			color4 = f.data[(x - x%4 + Fragment.FragmentSize*y)/4];
-			
-			return fractal.palette[(color4 & (0xFF << (8 * (3 - x%4)))) / (0x01 << (8 * (3 - x%4)))];
 		}
 		
 		long     timeToAbort;

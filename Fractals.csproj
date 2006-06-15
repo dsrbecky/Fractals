@@ -124,6 +124,13 @@
     <Compile Include="MainForm.cs" />
     <Compile Include="CurrentFractalSingleton.cs" />
     <Compile Include="BitmapCache.cs" />
+    <Compile Include="Equation.cs" />
+    <Compile Include="ColorMap.cs" />
+    <Compile Include="Compiler.cs" />
+    <Compile Include="ColorIndex.cs" />
+    <Compile Include="DataTree.cs" />
+    <Compile Include="CompileException.cs" />
+    <Compile Include="BitmapCacheItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.ico" />
