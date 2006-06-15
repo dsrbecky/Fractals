@@ -1,5 +1,7 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 
 namespace Fractals
 {
@@ -54,16 +56,12 @@ namespace Fractals
 		
 		ColorIndex[,] data = new ColorIndex[FragmentSize, FragmentSize];
 		public bool done;
-		public bool allTheSame;
+		public int maxColorDifference;
 		
-		public ColorIndex GetColorIndex(int x, int y)
-		{
-			return data[x, y];
-		}
-		
-		public void SetColorIndex(int x, int y, ColorIndex val)
-		{
-			data[x, y] = val;
+		public bool AllSame {
+			get {
+				return maxColorDifference < 5;
+			}
 		}
 		
 		public void MakeChilds()
@@ -78,6 +76,119 @@ namespace Fractals
 			get {
 				return childLT != null && childRT != null && childLB != null && childRB != null;
 			}
+		}
+		
+		public ColorIndex GetColorIndex(int x, int y)
+		{
+			return data[x, y];
+		}
+		
+		public void SetColorIndex(int x, int y, ColorIndex val)
+		{
+			data[x, y] = val;
+		}
+		
+		public void SetColorIndexes(Fractal fractal, double X, double Y, double size)
+		{
+			if (!done) {
+				for(int y = 0; y < Fragment.FragmentSize; y += 1) {
+					for(int x = 0; x < Fragment.FragmentSize; x += 1) {
+						ColorIndex index = fractal.Equation.GetColorIndex(X + x * size, Y + y * size);
+						SetColorIndex(x, y, index);
+					}
+				}
+				maxColorDifference = GetMaxColorDifference(fractal.ColorMap);
+				done = true;
+			}
+		}
+		
+		public int GetMaxColorDifference(ColorMap colorMap)
+		{
+			int minR, minG, minB;
+			int maxR, maxG, maxB;
+			minR = minG = minB = 256;
+			maxR = maxG = maxB = 0;
+			
+			for(int y = 0; y < Fragment.FragmentSize; y += 1) {
+				for(int x = 0; x < Fragment.FragmentSize; x += 1) {
+					ColorIndex index = GetColorIndex(x, y);
+					Color color = colorMap.GetColorFromIndex(index);
+					
+					minR = Math.Min(minR, color.R);
+					minG = Math.Min(minG, color.G);
+					minB = Math.Min(minB, color.B);
+					
+					maxR = Math.Max(maxR, color.R);
+					maxG = Math.Max(maxG, color.G);
+					maxB = Math.Max(maxB, color.B);
+				}
+			}
+			return Math.Max(maxR - minR, Math.Max(maxG - minG, maxB - minB));
+		}
+		
+		public Color GetColor(ColorMap colorMap, int x, int y)
+		{
+			return colorMap.GetColorFromIndex(GetColorIndex(x, y));
+		}
+		
+		public Color GetAntiAliasedColor(ColorMap colorMap, int x, int y, int levelsOfAA)
+		{
+			if (levelsOfAA <= 0) {
+				return GetColor(colorMap, x, y);
+			} else {
+				Fragment srcF;
+				int srcX = (x*2)%Fragment.FragmentSize;
+				int srcY = (y*2)%Fragment.FragmentSize;
+				if (x < Fragment.FragmentSize/2) {
+					if (y < Fragment.FragmentSize/2) {
+						srcF = ChildLT;
+					} else {
+						srcF = ChildLB;
+					}                
+				} else {
+					if (y < Fragment.FragmentSize/2) {
+						srcF = ChildRT;
+					} else {
+						srcF = ChildRB;
+					}
+				}
+				if (srcF != null && srcF.done) {
+					Color color1 = srcF.GetAntiAliasedColor(colorMap, srcX + 0, srcY + 0, levelsOfAA - 1);
+					Color color2 = srcF.GetAntiAliasedColor(colorMap, srcX + 0, srcY + 1, levelsOfAA - 1);
+					Color color3 = srcF.GetAntiAliasedColor(colorMap, srcX + 1, srcY + 0, levelsOfAA - 1);
+					Color color4 = srcF.GetAntiAliasedColor(colorMap, srcX + 1, srcY + 1, levelsOfAA - 1);
+					
+					int r = (color1.R + color2.R + color3.R + color4.R) / 4;
+					int g = (color1.G + color2.G + color3.G + color4.G) / 4;
+					int b = (color1.B + color2.B + color3.B + color4.B) / 4;
+					
+					return Color.FromArgb(r,g,b);
+				} else {
+					return GetColor(colorMap, x, y);
+				}
+			}
+		}
+		
+		public unsafe Bitmap MakeBitmap(ColorMap colorMap)
+		{
+			Bitmap bitmap = new Bitmap(Fragment.BitmapSize, Fragment.BitmapSize, PixelFormat.Format32bppRgb);
+			BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, Fragment.BitmapSize, Fragment.BitmapSize), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+			UInt32* ptr = (UInt32*) bmpData.Scan0.ToPointer();
+			for(int y = 0; y < Fragment.BitmapSize; y += 1) {
+				for(int x = 0; x < Fragment.BitmapSize; x += 1) {
+					uint k = 0; //debugMode ? (uint)depth*0x1000 : 0;
+					
+					if (x == Fragment.FragmentSize) {
+						*ptr = *(ptr-1); ptr++;
+					} else if (y == Fragment.FragmentSize) {
+						*ptr = *(ptr-Fragment.BitmapSize); ptr++;
+					} else {
+						*ptr = k + (uint)GetAntiAliasedColor(colorMap, x, y, 3).ToArgb(); ptr++;
+					}
+				}
+			}
+			bitmap.UnlockBits(bmpData);
+			return bitmap;
 		}
 	}
 }

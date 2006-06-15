@@ -30,8 +30,9 @@ namespace Fractals
 		}
 		
 		[STAThread]
-		static void Main() 
+		static void Main()
 		{
+			Application.EnableVisualStyles();
 			MainForm mainForm = new MainForm();
 			mainForm.Show();
 			mainForm.RenderLoop();

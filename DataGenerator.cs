@@ -48,102 +48,16 @@ namespace Fractals
 			this.fractal = fractal;
 		}
 		
-		void UpdateFragment(Fragment f, double X, double Y, double size)
-		{
-			if (f.done) return;
-			//if (IsOutOfFrustum((float)X,(float)Y,(float)size,(float)size)) return;
-			
-			int minR, minG, minB;
-			int maxR, maxG, maxB;
-			minR = minG = minB = 256;
-			maxR = maxG = maxB = 0;
-			
-			for(int y = 0; y < Fragment.FragmentSize; y += 1) {
-				for(int x = 0; x < Fragment.FragmentSize; x += 1) {
-					ColorIndex index = fractal.Equation.GetColorIndex(X + x * size, Y + y * size);
-					f.SetColorIndex(x, y, index);
-					
-					Color color = fractal.ColorMap.GetColorFromIndex(index);
-					
-					minR = Math.Min(minR, color.R);
-					minG = Math.Min(minG, color.G);
-					minB = Math.Min(minB, color.B);
-					
-					maxR = Math.Max(maxR, color.R);
-					maxG = Math.Max(maxG, color.G);
-					maxB = Math.Max(maxB, color.B);
-				}
-			}
-			int AAdiff = 5;
-			f.allTheSame = ((maxR - minR) < AAdiff) && ((maxG - minG) < AAdiff) && ((maxB - minB) < AAdiff);
-			
-			f.done = true;
-		}
-		
-		unsafe void UpdateBmp(Fragment f, int depth)
+		void UpdateBitmap(Fragment f)
 		{
 			if (bitmapCache.IsCached(f)) return;
 			
-			Bitmap bitmap = new Bitmap(Fragment.BitmapSize, Fragment.BitmapSize, PixelFormat.Format32bppRgb);
-			BitmapData bmpData = bitmap.LockBits(new Rectangle(0,0,Fragment.BitmapSize, Fragment.BitmapSize),ImageLockMode.WriteOnly,PixelFormat.Format32bppArgb);
-			UInt32* ptr = (UInt32*) bmpData.Scan0.ToPointer();
-			for(int y = 0; y < Fragment.BitmapSize; y += 1) {
-				for(int x = 0; x < Fragment.BitmapSize; x += 1) {
-					uint k = debugMode ? (uint)depth*0x1000 : 0;
-					
-					if (x == Fragment.FragmentSize) {
-						*ptr = *(ptr-1); ptr++;
-					} else if (y == Fragment.FragmentSize) {
-						*ptr = *(ptr-Fragment.BitmapSize); ptr++;
-					} else {
-						*ptr = k + (uint)GetColorAA(f, x, y, 3).ToArgb(); ptr++;
-					}
-				}
-			}
-			bitmap.UnlockBits(bmpData);
+			Bitmap bitmap = f.MakeBitmap(fractal.ColorMap);
 			
 			// save to cache
 			BitmapCacheItem c = bitmapCache.AllocateCache(f);
 			Graphics.FromImage(c.Bitmap).DrawImage(bitmap, c.X , c.Y);
 			bitmap.Dispose();
-		}
-		
-		Color GetColorAA(Fragment f, int x, int y, int levelsOfAA)
-		{
-			if (levelsOfAA <= 0 || !doAntiAliasing) {
-				return fractal.ColorMap.GetColorFromIndex(f.GetColorIndex(x, y));
-			}
-			
-			Fragment srcF;
-			int srcX = (x*2)%Fragment.FragmentSize;
-			int srcY = (y*2)%Fragment.FragmentSize;
-			if (x < Fragment.FragmentSize/2) {
-				if (y < Fragment.FragmentSize/2) {
-					srcF = f.ChildLT;
-				} else {
-					srcF = f.ChildLB;
-				}                
-			} else {
-				if (y < Fragment.FragmentSize/2) {
-					srcF = f.ChildRT;
-				} else {
-					srcF = f.ChildRB;
-				}
-			}
-			if (srcF != null && srcF.done) {
-				Color color1 = GetColorAA(srcF, srcX + 0, srcY + 0, levelsOfAA - 1);
-				Color color2 = GetColorAA(srcF, srcX + 0, srcY + 1, levelsOfAA - 1);
-				Color color3 = GetColorAA(srcF, srcX + 1, srcY + 0, levelsOfAA - 1);
-				Color color4 = GetColorAA(srcF, srcX + 1, srcY + 1, levelsOfAA - 1);
-				
-				int r = (color1.R + color2.R + color3.R + color4.R) / 4;
-				int g = (color1.G + color2.G + color3.G + color4.G) / 4;
-				int b = (color1.B + color2.B + color3.B + color4.B) / 4;
-				
-				return Color.FromArgb(r,g,b);
-			} else {
-				return fractal.ColorMap.GetColorFromIndex(f.GetColorIndex(x, y));
-			}
 		}
 		
 		long     timeToAbort;
@@ -154,8 +68,6 @@ namespace Fractals
 		
 		bool     simulation;
 		Graphics g;
-		
-		bool     doAntiAliasing;
 		
 		Matrix extraTransformation;
 		
@@ -195,9 +107,9 @@ namespace Fractals
 			bool invisible     = (renderSize < visibleSize);
 			bool lastVisible   = (renderSize < visibleSize * 2) && !invisible;
 			
-			UpdateFragment(f, dataX, dataY, dataSize / Fragment.FragmentSize);
+			f.SetColorIndexes(fractal, dataX, dataY, dataSize / Fragment.FragmentSize);
 			
-			if (!f.allTheSame || (renderSize > 8*terminalSize))
+			if (!f.AllSame || (renderSize > 8*terminalSize))
 				if (!lastRecrusion)
 					if (!f.HasAllChilds)
 						f.MakeChilds();
@@ -216,7 +128,7 @@ namespace Fractals
 			
 			if ((!f.HasAllChilds || lastRecrusion || abortAllowed) && (!skipDrawing || lastVisible) && !invisible)
 			{
-				UpdateBmp(f, depht);
+				UpdateBitmap(f);
 				if (simulation == false) {
 					BitmapCacheItem c = bitmapCache[f];
 					g.DrawImage(c.Bitmap,
@@ -298,7 +210,6 @@ namespace Fractals
 				/// Primary draw - must finish
 				/// --------------------------
 				abortAllowed   = false;
-				doAntiAliasing = false;
 				simulation     = false;
 				initalSize     = double.MaxValue;
 				terminalSize   = compulsorySize;
@@ -321,7 +232,6 @@ namespace Fractals
 				/// Anti-alias primary draw
 				/// --------------------------
 				abortAllowed   = true;
-				doAntiAliasing = true;
 				simulation     = true;
 				initalSize     = double.MaxValue;
 				terminalSize   = compulsorySize;
@@ -336,7 +246,6 @@ namespace Fractals
 				while (finishedInTime && !aborted)
 				{
 					abortAllowed   = true;
-					doAntiAliasing = true;
 					simulation     = false;
 					initalSize     = terminalSize; // Start where we finished
 					terminalSize   = initalSize / 2d; // Do one more level
