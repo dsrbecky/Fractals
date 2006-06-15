@@ -19,6 +19,12 @@ namespace Fractals
 			}
 		}
 		
+		public RectangleD Area {
+			get {
+				return new RectangleD(-size / 2, -size / 2, size, size);
+			}
+		}
+		
 		public void ExtendRoot()
 		{
 			Fragment newRoot = new Fragment();

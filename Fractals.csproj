@@ -131,6 +131,7 @@
     <Compile Include="DataTree.cs" />
     <Compile Include="CompileException.cs" />
     <Compile Include="BitmapCacheItem.cs" />
+    <Compile Include="RectangleD.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.ico" />
