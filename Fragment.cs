@@ -55,8 +55,9 @@ namespace Fractals
 		// NOTE: Fragmet always has half the size of parent
 		
 		ColorIndex[,] data = new ColorIndex[FragmentSize, FragmentSize];
-		public bool done;
-		public int maxColorDifference;
+		bool done;
+		int maxColorDifference;
+		int depth;
 		
 		public bool AllSame {
 			get {
@@ -64,12 +65,25 @@ namespace Fractals
 			}
 		}
 		
+		public int Depth {
+			get {
+				return depth;
+			}
+		}
+		
+		public Fragment(int depth)
+		{
+			this.depth = depth;
+		}
+		
 		public void MakeChilds()
 		{
-			childLT = new Fragment();
-			childRT = new Fragment();
-			childLB = new Fragment();
-			childRB = new Fragment();
+			if (!HasAllChilds) {
+				childLT = new Fragment(depth + 1);
+				childRT = new Fragment(depth + 1);
+				childLB = new Fragment(depth + 1);
+				childRB = new Fragment(depth + 1);
+			}
 		}
 		
 		public bool HasAllChilds {

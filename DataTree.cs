@@ -4,7 +4,7 @@ namespace Fractals
 {
 	public class DataTree
 	{
-		Fragment root = new Fragment();
+		Fragment root = new Fragment(0);
 		double size = 64d;
 		
 		public Fragment Root {
@@ -27,7 +27,7 @@ namespace Fractals
 		
 		public void ExtendRoot()
 		{
-			Fragment newRoot = new Fragment();
+			Fragment newRoot = new Fragment(root.Depth - 1);
 			newRoot.MakeChilds();
 			newRoot.ChildLT.ChildRB = Root.ChildLT;
 			newRoot.ChildRT.ChildLB = Root.ChildRT;
