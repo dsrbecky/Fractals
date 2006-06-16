@@ -15,7 +15,7 @@ namespace Fractals
 {
 	public partial class MainForm
 	{
-		static double FPS = 20d;
+		static int FPS = 25;
 		public static SettingsForm settingsForm;
 		bool zooming = false;
 		bool restartRenderLoop = false;
@@ -105,8 +105,8 @@ namespace Fractals
 				Graphics graphics = CreateGraphics();
 				restartRenderLoop = false;
 				if (CurrentFractalSingleton.Instance.Compiles) {
-					DataGenerator dataGenerator = new DataGenerator(CurrentFractalSingleton.Instance);
-					dataGenerator.debugMode = settingsForm.debugMode.Checked;
+					DataGenerator dataGenerator = new DataGenerator(CurrentFractalSingleton.Instance, graphics, ClientRectangle);
+					dataGenerator.TargetRenderTime = TimeSpan.FromSeconds(1d / FPS);
 					dataGenerator.UserThreadAction += delegate {
 						Application.DoEvents();
 						if (this.IsDisposed || restartRenderLoop) {
@@ -116,18 +116,14 @@ namespace Fractals
 					
 					while (!dataGenerator.Aborted && (zooming || CurrentFractalSingleton.Instance.View.Rotating)) {
 						UpdateMotion();
-						long time = dataGenerator.Render(CurrentFractalSingleton.Instance.View,
-						                                 graphics,
-						                                 ClientRectangle.Width,
-						                                 ClientRectangle.Height,
-						                                 FPS + 1);
+						dataGenerator.Render();
+						Text = String.Format("{0:F0} fps; {1} fragments; {2:F3} ms/frag",
+						                     dataGenerator.FPS,
+						                     dataGenerator.NumberOfFragmentsRendered,
+						                     dataGenerator.ActualRenderTime.TotalMilliseconds / dataGenerator.NumberOfFragmentsRendered);
 					}
 					
-					dataGenerator.Render(CurrentFractalSingleton.Instance.View,
-					                     graphics,
-					                     ClientRectangle.Width,
-					                     ClientRectangle.Height,
-					                     0);
+					dataGenerator.Render();
 				} else {
 					graphics.Clear(Color.White);
 				}

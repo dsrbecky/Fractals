@@ -5,22 +5,31 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
-// TODO: TempData extension
-
 namespace Fractals
 {
 	public class DataGenerator
 	{
+		// Render target
 		Fractal fractal;
-		public bool debugMode = false;
+		Graphics graphics;
+		Rectangle renderRectangle;
 		
-		static int userThreadInterval = 10;
-		long lastUserThreadActionTime;
+		// Multi-threading
+		TimeSpan userThreadInterval = TimeSpan.FromMilliseconds(10);
+		DateTime lastUserThreadActionTime;
 		public event EventHandler UserThreadAction;
-		
-		DataTree data = new DataTree();
-		
 		bool aborted = false;
+		
+		// Caching
+		DataTree data = new DataTree();
+		BitmapCache bitmapCache = new BitmapCache();
+		
+		// Real-time rendering
+		double convergance = 0.2d;
+		double numberOfFragmentsToRender = 16;
+		int numberOfFragmentsRendered;
+		TimeSpan targetRenderTime;
+		TimeSpan actualRenderTime;
 		
 		public bool Aborted {
 			get {
@@ -28,21 +37,43 @@ namespace Fractals
 			}
 		}
 		
+		public int NumberOfFragmentsRendered {
+			get {
+				return numberOfFragmentsRendered;
+			}
+		}
+		
+		public TimeSpan TargetRenderTime {
+			get {
+				return targetRenderTime;
+			}
+			set {
+				targetRenderTime = value;
+			}
+		}
+		
+		public TimeSpan ActualRenderTime {
+			get {
+				return actualRenderTime;
+			}
+		}
+		
+		public double FPS {
+			get {
+				return (double)TimeSpan.TicksPerSecond / actualRenderTime.Ticks;
+			}
+		}
+		
+		public DataGenerator(Fractal fractal, Graphics graphics, Rectangle renderRectangle)
+		{
+			this.fractal = fractal;
+			this.graphics = graphics;
+			this.renderRectangle = renderRectangle;
+		}
+		
 		public void Abort()
 		{
 			aborted = true;
-		}
-		
-		private long GetTicks()
-		{
-			return Environment.TickCount;
-		}
-		
-		BitmapCache bitmapCache = new BitmapCache();
-		
-		public DataGenerator(Fractal fractal)
-		{
-			this.fractal = fractal;
 		}
 		
 		BitmapCacheItem UpdateBitmap(Fragment f)
@@ -60,76 +91,64 @@ namespace Fractals
 			}
 		}
 		
-		double visibleSize;
-		Graphics g;
-		Matrix extraTransformation;
-		
-		void RenderFragmentsRecrusivly(Fragment f, RectangleD dataSrc, RectangleD renderDest)
+		void Render(IEnumerable<RenderOperation> operations)
 		{
-			if (GetTicks() > lastUserThreadActionTime + userThreadInterval) {
-				lastUserThreadActionTime = GetTicks();
-				if (UserThreadAction != null) {
-					UserThreadAction(this, EventArgs.Empty);
+			foreach (RenderOperation operation in operations) {
+				if (HighPrecisionTimer.Now - lastUserThreadActionTime > userThreadInterval) {
+					lastUserThreadActionTime = HighPrecisionTimer.Now;
+					if (UserThreadAction != null) {
+						UserThreadAction(this, EventArgs.Empty);
+					}
 				}
+				if (aborted) return;
+				
+				operation.Fragment.SetColorIndexes(fractal, operation.DataSource.X, operation.DataSource.Y, operation.DataSource.Size / Fragment.FragmentSize);
+				BitmapCacheItem c = UpdateBitmap(operation.Fragment);
+				graphics.DrawImage(c.Bitmap,
+				                   new PointF[] {operation.RenderDestination.LeftTopCornerF,
+				                                 operation.RenderDestination.RightTopCornerF,
+				                                 operation.RenderDestination.LeftBottomCornerF},
+				                   new RectangleF(c.X, c.Y, Fragment.FragmentSize, Fragment.FragmentSize),
+				                   GraphicsUnit.Pixel);
 			}
-			if (f == null) return;
-			if (aborted) return;
-			
-			// Visiblity test
-			PointF[] center = new PointF[] {renderDest.LeftTopCornerF};
-			extraTransformation.TransformPoints(center);
-			if (Math.Max(Math.Abs(center[0].X), Math.Abs(center[0].Y))-1.5d * renderDest.Size > 1) return;
-			
-			bool invisible     = (renderDest.Size < visibleSize);
-			bool lastVisible   = (renderDest.Size < visibleSize * 2) && !invisible;
-			
-			f.SetColorIndexes(fractal, dataSrc.X, dataSrc.Y, dataSrc.Size / Fragment.FragmentSize);
-			if (f.Depth < 10) {
-				f.MakeChilds();
-			}
-			
-			BitmapCacheItem c = UpdateBitmap(f);
-			g.DrawImage(c.Bitmap,
-						new PointF[] {renderDest.LeftTopCornerF,
-									  renderDest.RightTopCornerF,
-									  renderDest.LeftBottomCornerF},
-						new RectangleF(c.X, c.Y, Fragment.FragmentSize, Fragment.FragmentSize),
-						GraphicsUnit.Pixel);
-			
-			RenderFragmentsRecrusivly(f.ChildLT, dataSrc.LeftTopQuater    , renderDest.LeftTopQuater);
-			RenderFragmentsRecrusivly(f.ChildRT, dataSrc.RightTopQuater   , renderDest.RightTopQuater);
-			RenderFragmentsRecrusivly(f.ChildLB, dataSrc.LeftBottomQuater , renderDest.LeftBottomQuater);
-			RenderFragmentsRecrusivly(f.ChildRB, dataSrc.RightBottomQuater, renderDest.RightBottomQuater);
 		}
 		
-		public long Render(View v, Graphics destGraphics, int w, int h, double FPS)
+		public void Render()
 		{
-			long startTime = GetTicks();
+			DateTime startTime = HighPrecisionTimer.Now;
 			
-			visibleSize = (((double)Fragment.FragmentSize*2)/(double)Math.Min(w,h));
+			while(data.Size < fractal.View.BoundingBoxSize) {
+				data.ExtendRoot();
+			}
 			
-			extraTransformation = new Matrix();
-			extraTransformation.Rotate((float)(v.CurrentAngle), MatrixOrder.Append);
+			Matrix rotation = new Matrix();
+			rotation.Rotate((float)fractal.View.CurrentAngle);
 			
-			g = destGraphics;
-			g.CompositingQuality = CompositingQuality.HighSpeed;
-			g.InterpolationMode = InterpolationMode.Bilinear;
-			g.SmoothingMode = SmoothingMode.HighSpeed;
-			g.ResetTransform();
-			g.MultiplyTransform(extraTransformation, MatrixOrder.Append);
+			graphics.CompositingQuality = CompositingQuality.HighSpeed;
+			graphics.InterpolationMode = InterpolationMode.Bilinear;
+			graphics.SmoothingMode = SmoothingMode.HighSpeed;
+			graphics.ResetTransform();
+			graphics.MultiplyTransform(rotation, MatrixOrder.Append);
 			// From [-1,1] to [0,w]
-			g.TranslateTransform(1, 1, MatrixOrder.Append);
-			g.ScaleTransform(w/2, h/2, MatrixOrder.Append);
+			graphics.TranslateTransform(1, 1, MatrixOrder.Append);
+			graphics.ScaleTransform(renderRectangle.Width / 2, renderRectangle.Height / 2, MatrixOrder.Append);
 			
-			RectangleD renderArea = new RectangleD((-v.Xpos + -data.Size / 2) * v.Xzoom,
-			                                       (-v.Ypos + -data.Size / 2) * v.Xzoom,
-			                                       2 * v.Xzoom * data.Size / 2,
-			                                       2 * v.Xzoom * data.Size / 2);
+			RectangleD renderArea = new RectangleD((-fractal.View.Xpos + -data.Size / 2) * fractal.View.Xzoom,
+			                                       (-fractal.View.Ypos + -data.Size / 2) * fractal.View.Xzoom,
+			                                       2 * fractal.View.Xzoom * data.Size / 2,
+			                                       2 * fractal.View.Xzoom * data.Size / 2);
 			
-			RenderFragmentsRecrusivly(data.Root, data.Area, renderArea);
+			RenderOperation root = new RenderOperation(data.Root, data.Area, renderArea, rotation);
+			RenderSet renderSet = new RenderSet(root, (int)numberOfFragmentsToRender);
+			Render(renderSet.RenderOperations);
 			
-			long endTime = GetTicks();
-			return endTime - startTime;
+			numberOfFragmentsRendered = renderSet.Count;
+			
+			actualRenderTime = HighPrecisionTimer.Now - startTime;
+			double timeFraction = (double)actualRenderTime.Ticks / (double)targetRenderTime.Ticks;
+			double optimalCount = (double)numberOfFragmentsToRender / timeFraction;
+			numberOfFragmentsToRender = numberOfFragmentsToRender * (1 - convergance) + optimalCount * convergance;
+			numberOfFragmentsToRender = Math.Max(16d, numberOfFragmentsToRender);
 		}
 	}
 }

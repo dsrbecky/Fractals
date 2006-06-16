@@ -132,6 +132,9 @@
     <Compile Include="CompileException.cs" />
     <Compile Include="BitmapCacheItem.cs" />
     <Compile Include="RectangleD.cs" />
+    <Compile Include="RenderOperation.cs" />
+    <Compile Include="RenderSet.cs" />
+    <Compile Include="Util\HighPrecisionTimer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.ico" />

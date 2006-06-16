@@ -111,5 +111,12 @@ namespace Fractals
 				                  (float)(Y + Height));
 			}
 		}
+		
+		public PointF CentreF {
+			get {
+				return new PointF((float)(X + Width / 2),
+				                  (float)(Y + Height / 2));
+			}
+		}
 	}
 }

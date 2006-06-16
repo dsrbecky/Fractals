@@ -10,7 +10,7 @@ namespace Fractals
 		const int fragmentsPerBitmap = 16;
 		const int bitmapCount = 8;
 		
-		List<BitmapCacheItem> caches = new List<BitmapCacheItem>();
+		LinkedList<BitmapCacheItem> caches = new LinkedList<BitmapCacheItem>();
 		Dictionary<Fragment, BitmapCacheItem> fragmentsWithCache = new Dictionary<Fragment, BitmapCacheItem>();
 		
 		public BitmapCache()
@@ -23,9 +23,9 @@ namespace Fractals
 				
 				for(int x = 0; x < fragmentsPerBitmap; x++) {
 					for(int y = 0; y < fragmentsPerBitmap; y++) {
-						caches.Add(new BitmapCacheItem(bitmap,
-						                               x * Fragment.BitmapSize,
-						                               y * Fragment.BitmapSize));
+						caches.AddLast(new BitmapCacheItem(bitmap,
+						                                   x * Fragment.BitmapSize,
+						                                   y * Fragment.BitmapSize));
 					}
 				}
 			}
@@ -45,9 +45,9 @@ namespace Fractals
 				return fragmentsWithCache[f];
 			} else {
 				// Take item from head and put it at tail
-				BitmapCacheItem item = caches[0];
-				caches.RemoveAt(0);
-				caches.Add(item);
+				BitmapCacheItem item = caches.First.Value;
+				caches.RemoveFirst();
+				caches.AddLast(item);
 				
 				// Allocate the item to freagment
 				if (item.Owner != null) {

@@ -5,7 +5,7 @@ namespace Fractals
 	public class DataTree
 	{
 		Fragment root = new Fragment(0);
-		double size = 64d;
+		double size = 2d;
 		
 		public Fragment Root {
 			get {

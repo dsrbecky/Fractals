@@ -190,7 +190,12 @@ namespace Fractals
 			UInt32* ptr = (UInt32*) bmpData.Scan0.ToPointer();
 			for(int y = 0; y < Fragment.BitmapSize; y += 1) {
 				for(int x = 0; x < Fragment.BitmapSize; x += 1) {
-					uint k = 0; //debugMode ? (uint)depth*0x1000 : 0;
+					uint k = 0;
+					
+//					if (x == 0 && y == 0) {
+//						*ptr = 0x00FF0000; ptr++;
+//						continue;
+//					}
 					
 					if (x == Fragment.FragmentSize) {
 						*ptr = *(ptr-1); ptr++;
@@ -201,6 +206,7 @@ namespace Fractals
 					}
 				}
 			}
+//			ptr--; *ptr = 0x000000FF; ptr++;
 			bitmap.UnlockBits(bmpData);
 			return bitmap;
 		}

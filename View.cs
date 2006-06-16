@@ -33,6 +33,13 @@ namespace Fractals
 			}
 		}
 		
+		public double BoundingBoxSize {
+			get {
+				double positionDistance = Math.Max(Math.Abs(Xpos), Math.Abs(Ypos));
+				double zoomDistance = Math.Max(1d / Xzoom, 1d / Yzoom);
+				return 2 * (positionDistance + zoomDistance);
+			}
+		}
 		
 		public void Move (double Xpos, double Ypos, double Xzoom, double Yzoom)
 		{
