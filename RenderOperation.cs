@@ -13,6 +13,8 @@ namespace Fractals
 		RectangleD dataSource;
 		RectangleD renderDestination;
 		Matrix rotation;
+		float distanceFromScreenCentre;
+		double priority;
 		
 		public Fragment Fragment {
 			get {
@@ -64,7 +66,19 @@ namespace Fractals
 		
 		public double Priority {
 			get {
-				return fragment.Depth;
+				return priority;
+			}
+		}
+		
+		float DistanceFromScreenCentre {
+			get {
+				return distanceFromScreenCentre;
+			}
+		}
+		
+		public bool IsInViewFrustum {
+			get {
+				return DistanceFromScreenCentre < 1 + 0.72d * renderDestination.Size;
 			}
 		}
 		
@@ -75,6 +89,15 @@ namespace Fractals
 			this.renderDestination = renderDestination;
 			this.rotation = rotation;
 			this.id = nextFreeId++;
+			
+			PointF[] center = new PointF[] {renderDestination.CentreF};
+			rotation.TransformPoints(center);
+			distanceFromScreenCentre = Math.Max(Math.Abs(center[0].X), Math.Abs(center[0].Y));
+			
+			// Small means high-priority; big means low-priority
+			this.priority = fragment.Depth +
+			                Math.Min(DistanceFromScreenCentre, 1d) * 0.5d +
+			                -Math.Min(fragment.MaxColorDifference / 64d, 1d) * 2.5d;
 		}
 		
 		public int CompareTo(RenderOperation op)
@@ -84,14 +107,6 @@ namespace Fractals
 				return id.CompareTo(op.id);
 			} else {
 				return comp;
-			}
-		}
-		
-		public bool IsInViewFrustum {
-			get {
-				PointF[] center = new PointF[] {renderDestination.CentreF};
-				rotation.TransformPoints(center);
-				return Math.Max(Math.Abs(center[0].X), Math.Abs(center[0].Y)) < 1 + 0.72d * renderDestination.Size;
 			}
 		}
 	}

@@ -46,5 +46,31 @@ namespace Fractals
 				renderSet.Add(op, null);
 			}
 		}
+		
+		public IEnumerable<RenderOperation> MakeRefineOperations()
+		{
+			foreach (KeyValuePair<RenderOperation, object> kvp in renderSet) {
+				RenderOperation first = kvp.Key;
+				first.Fragment.MakeChilds();
+				renderSet.Remove(first);
+				if (first.LeftTopQuater.IsInViewFrustum) {
+					yield return first.LeftTopQuater;
+					renderSet.Add(first.LeftTopQuater, null);
+				}
+				if (first.RightTopQuater.IsInViewFrustum) {
+					yield return first.RightTopQuater;
+					renderSet.Add(first.RightTopQuater, null);
+				}
+				if (first.LeftBottomQuater.IsInViewFrustum) {
+					yield return first.LeftBottomQuater;
+					renderSet.Add(first.LeftBottomQuater, null);
+				}
+				if (first.RightBottomQuater.IsInViewFrustum) {
+					yield return first.RightBottomQuater;
+					renderSet.Add(first.RightBottomQuater, null);
+				}
+				break;
+			}
+		}
 	}
 }

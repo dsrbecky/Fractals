@@ -56,12 +56,12 @@ namespace Fractals
 		
 		ColorIndex[,] data = new ColorIndex[FragmentSize, FragmentSize];
 		bool done;
-		int maxColorDifference;
+		int maxColorDifference = 255;
 		int depth;
 		
-		public bool AllSame {
+		public int MaxColorDifference {
 			get {
-				return maxColorDifference < 5;
+				return maxColorDifference;
 			}
 		}
 		
@@ -192,6 +192,8 @@ namespace Fractals
 				for(int x = 0; x < Fragment.BitmapSize; x += 1) {
 					uint k = 0;
 					
+					//k = 0x000F00 * (uint)(depth + 4);
+					//k = 0x000100 * (uint)maxColorDifference;
 //					if (x == 0 && y == 0) {
 //						*ptr = 0x00FF0000; ptr++;
 //						continue;

@@ -23,12 +23,13 @@ namespace Fractals
 		// Caching
 		DataTree data = new DataTree();
 		BitmapCache bitmapCache = new BitmapCache();
+		RenderSet renderSet;
 		
 		// Real-time rendering
 		double convergance = 0.2d;
 		double numberOfFragmentsToRender = 16;
 		int numberOfFragmentsRendered;
-		TimeSpan targetRenderTime;
+		TimeSpan targetRenderTime = TimeSpan.FromMilliseconds(1d / 20);
 		TimeSpan actualRenderTime;
 		
 		public bool Aborted {
@@ -117,7 +118,7 @@ namespace Fractals
 		{
 			DateTime startTime = HighPrecisionTimer.Now;
 			
-			while(data.Size < fractal.View.BoundingBoxSize) {
+			while(data.Size < fractal.View.BoundingBoxSize * 2) {
 				data.ExtendRoot();
 			}
 			
@@ -139,7 +140,7 @@ namespace Fractals
 			                                       2 * fractal.View.Xzoom * data.Size / 2);
 			
 			RenderOperation root = new RenderOperation(data.Root, data.Area, renderArea, rotation);
-			RenderSet renderSet = new RenderSet(root, (int)numberOfFragmentsToRender);
+			renderSet = new RenderSet(root, (int)numberOfFragmentsToRender);
 			Render(renderSet.RenderOperations);
 			
 			numberOfFragmentsRendered = renderSet.Count;
@@ -149,6 +150,14 @@ namespace Fractals
 			double optimalCount = (double)numberOfFragmentsToRender / timeFraction;
 			numberOfFragmentsToRender = numberOfFragmentsToRender * (1 - convergance) + optimalCount * convergance;
 			numberOfFragmentsToRender = Math.Max(16d, numberOfFragmentsToRender);
+		}
+		
+		public void HighQualityRender()
+		{
+			Render();
+			while(!aborted) {
+				Render(renderSet.MakeRefineOperations());
+			}
 		}
 	}
 }

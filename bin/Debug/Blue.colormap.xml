@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ColorMap xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Code>static public Color[] c = new Color[65];
+static public void MakeColors()
+{
+	for (int i = 0; i &lt; 64;i += 1) {
+		c[i] = Color.FromArgb(0,0,i * 4);
+	}
+	c[64] = Color.Black;
+}</Code>
+</ColorMap>

@@ -123,7 +123,7 @@ namespace Fractals
 						                     dataGenerator.ActualRenderTime.TotalMilliseconds / dataGenerator.NumberOfFragmentsRendered);
 					}
 					
-					dataGenerator.Render();
+					dataGenerator.HighQualityRender();
 				} else {
 					graphics.Clear(Color.White);
 				}
