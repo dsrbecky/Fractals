@@ -47,29 +47,36 @@ namespace Fractals
 			}
 		}
 		
-		public IEnumerable<RenderOperation> MakeRefineOperations()
+		public IEnumerable<RenderOperation> MakeRefineOperations(double pixelSize)
 		{
-			foreach (KeyValuePair<RenderOperation, object> kvp in renderSet) {
-				RenderOperation first = kvp.Key;
-				first.Fragment.MakeChilds();
-				renderSet.Remove(first);
-				if (first.LeftTopQuater.IsInViewFrustum) {
-					yield return first.LeftTopQuater;
-					renderSet.Add(first.LeftTopQuater, null);
+			while(renderSet.Count > 0) {
+				foreach (KeyValuePair<RenderOperation, object> kvp in renderSet) {
+					RenderOperation first = kvp.Key;
+					renderSet.Remove(first);
+					
+					// Terminate refinement?
+					double AAfactor = 1d + Math.Min(first.Fragment.MaxColorDifference / 16d, 3d);
+					if (first.TexelSize / 2 * AAfactor < pixelSize) break;
+					
+					first.Fragment.MakeChilds();
+					if (first.LeftTopQuater.IsInViewFrustum) {
+						yield return first.LeftTopQuater;
+						renderSet.Add(first.LeftTopQuater, null);
+					}
+					if (first.RightTopQuater.IsInViewFrustum) {
+						yield return first.RightTopQuater;
+						renderSet.Add(first.RightTopQuater, null);
+					}
+					if (first.LeftBottomQuater.IsInViewFrustum) {
+						yield return first.LeftBottomQuater;
+						renderSet.Add(first.LeftBottomQuater, null);
+					}
+					if (first.RightBottomQuater.IsInViewFrustum) {
+						yield return first.RightBottomQuater;
+						renderSet.Add(first.RightBottomQuater, null);
+					}
+					break;
 				}
-				if (first.RightTopQuater.IsInViewFrustum) {
-					yield return first.RightTopQuater;
-					renderSet.Add(first.RightTopQuater, null);
-				}
-				if (first.LeftBottomQuater.IsInViewFrustum) {
-					yield return first.LeftBottomQuater;
-					renderSet.Add(first.LeftBottomQuater, null);
-				}
-				if (first.RightBottomQuater.IsInViewFrustum) {
-					yield return first.RightBottomQuater;
-					renderSet.Add(first.RightBottomQuater, null);
-				}
-				break;
 			}
 		}
 	}

@@ -97,30 +97,36 @@ namespace Fractals
 		void Render(IEnumerable<RenderOperation> operations)
 		{
 			foreach (RenderOperation operation in operations) {
-				if (HighPrecisionTimer.Now - lastUserThreadActionTime > userThreadInterval) {
-					lastUserThreadActionTime = HighPrecisionTimer.Now;
-					if (UserThreadAction != null) {
-						UserThreadAction(this, EventArgs.Empty);
-					}
-				}
-				if (aborted) return;
-				
-				operation.Fragment.SetColorIndexes(fractal, operation.DataSource.X, operation.DataSource.Y, operation.DataSource.Size / Fragment.FragmentSize);
-				
-				RenderOperation largeEnoughRenderOperation = operation;
-				while (largeEnoughRenderOperation.TexelSize < pixelSize && operation.Parent != null) {
-					largeEnoughRenderOperation = largeEnoughRenderOperation.Parent;
-					bitmapCache.ReleaseCache(largeEnoughRenderOperation.Fragment);
-				}
-				
-				BitmapCacheItem c = UpdateBitmap(largeEnoughRenderOperation.Fragment);
-				graphics.DrawImage(c.Bitmap,
-				                   new PointF[] {largeEnoughRenderOperation.RenderDestination.LeftTopCornerF,
-				                                 largeEnoughRenderOperation.RenderDestination.RightTopCornerF,
-				                                 largeEnoughRenderOperation.RenderDestination.LeftBottomCornerF},
-				                   new RectangleF(c.X, c.Y, Fragment.FragmentSize, Fragment.FragmentSize),
-				                   GraphicsUnit.Pixel);
+				Render(operation);
+				if (aborted) break;
 			}
+		}
+		
+		void Render(RenderOperation operation)
+		{
+			if (HighPrecisionTimer.Now - lastUserThreadActionTime > userThreadInterval) {
+				lastUserThreadActionTime = HighPrecisionTimer.Now;
+				if (UserThreadAction != null) {
+					UserThreadAction(this, EventArgs.Empty);
+				}
+			}
+			if (aborted) return;
+			
+			operation.Fragment.SetColorIndexes(fractal, operation.DataSource.X, operation.DataSource.Y, operation.DataSource.Size / Fragment.FragmentSize);
+			
+			RenderOperation largeEnoughRenderOperation = operation;
+			while (largeEnoughRenderOperation.TexelSize < pixelSize && operation.Parent != null) {
+				largeEnoughRenderOperation = largeEnoughRenderOperation.Parent;
+				bitmapCache.ReleaseCache(largeEnoughRenderOperation.Fragment);
+			}
+			
+			BitmapCacheItem c = UpdateBitmap(largeEnoughRenderOperation.Fragment);
+			graphics.DrawImage(c.Bitmap,
+			                   new PointF[] {largeEnoughRenderOperation.RenderDestination.LeftTopCornerF,
+			                                 largeEnoughRenderOperation.RenderDestination.RightTopCornerF,
+			                                 largeEnoughRenderOperation.RenderDestination.LeftBottomCornerF},
+			                   new RectangleF(c.X, c.Y, Fragment.FragmentSize, Fragment.FragmentSize),
+			                   GraphicsUnit.Pixel);
 		}
 		
 		public void Render()
@@ -166,9 +172,7 @@ namespace Fractals
 		public void HighQualityRender()
 		{
 			Render();
-			while(!aborted) {
-				Render(renderSet.MakeRefineOperations());
-			}
+			Render(renderSet.MakeRefineOperations(pixelSize));
 		}
 	}
 }
