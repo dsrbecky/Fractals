@@ -194,9 +194,11 @@ namespace Fractals
 					
 					//k = 0x000F00 * (uint)(depth + 4);
 					//k = 0x000100 * (uint)maxColorDifference;
+//					if (x % 2 == 0 || y % 2 == 0) {
+//						k = 0x7F0000;
+//					}
 //					if (x == 0 && y == 0) {
-//						*ptr = 0x00FF0000; ptr++;
-//						continue;
+//						*ptr = 0xFF0000; ptr++; continue;
 //					}
 					
 					if (x == Fragment.FragmentSize) {

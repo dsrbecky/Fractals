@@ -9,12 +9,19 @@ namespace Fractals
 		static long nextFreeId = 0;
 		long id;
 		
+		RenderOperation parent;
 		Fragment fragment;
 		RectangleD dataSource;
 		RectangleD renderDestination;
 		Matrix rotation;
 		float distanceFromScreenCentre;
 		double priority;
+		
+		public RenderOperation Parent {
+			get {
+				return parent;
+			}
+		}
 		
 		public Fragment Fragment {
 			get {
@@ -42,25 +49,25 @@ namespace Fractals
 		
 		public RenderOperation LeftTopQuater {
 			get {
-				return new RenderOperation(fragment.ChildLT, dataSource.LeftTopQuater, renderDestination.LeftTopQuater, rotation);
+				return new RenderOperation(this, fragment.ChildLT, dataSource.LeftTopQuater, renderDestination.LeftTopQuater, rotation);
 			}
 		}
 		
 		public RenderOperation RightTopQuater {
 			get {
-				return new RenderOperation(fragment.ChildRT, dataSource.RightTopQuater, renderDestination.RightTopQuater, rotation);
+				return new RenderOperation(this, fragment.ChildRT, dataSource.RightTopQuater, renderDestination.RightTopQuater, rotation);
 			}
 		}
 		
 		public RenderOperation LeftBottomQuater {
 			get {
-				return new RenderOperation(fragment.ChildLB, dataSource.LeftBottomQuater , renderDestination.LeftBottomQuater, rotation);
+				return new RenderOperation(this, fragment.ChildLB, dataSource.LeftBottomQuater , renderDestination.LeftBottomQuater, rotation);
 			}
 		}
 		
 		public RenderOperation RightBottomQuater {
 			get {
-				return new RenderOperation(fragment.ChildRB, dataSource.RightBottomQuater, renderDestination.RightBottomQuater, rotation);
+				return new RenderOperation(this, fragment.ChildRB, dataSource.RightBottomQuater, renderDestination.RightBottomQuater, rotation);
 			}
 		}
 		
@@ -76,14 +83,21 @@ namespace Fractals
 			}
 		}
 		
+		public double TexelSize {
+			get {
+				return renderDestination.Width / Fragment.FragmentSize * 1.0d;
+			}
+		}
+		
 		public bool IsInViewFrustum {
 			get {
 				return DistanceFromScreenCentre < 1 + 0.72d * renderDestination.Size;
 			}
 		}
 		
-		public RenderOperation(Fragment fragment, RectangleD dataSource, RectangleD renderDestination, Matrix rotation)
+		public RenderOperation(RenderOperation parent, Fragment fragment, RectangleD dataSource, RectangleD renderDestination, Matrix rotation)
 		{
+			this.parent = parent;
 			this.fragment = fragment;
 			this.dataSource = dataSource;
 			this.renderDestination = renderDestination;

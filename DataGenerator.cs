@@ -32,6 +32,8 @@ namespace Fractals
 		TimeSpan targetRenderTime = TimeSpan.FromMilliseconds(1d / 20);
 		TimeSpan actualRenderTime;
 		
+		double pixelSize;
+		
 		public bool Aborted {
 			get {
 				return aborted;
@@ -104,11 +106,18 @@ namespace Fractals
 				if (aborted) return;
 				
 				operation.Fragment.SetColorIndexes(fractal, operation.DataSource.X, operation.DataSource.Y, operation.DataSource.Size / Fragment.FragmentSize);
-				BitmapCacheItem c = UpdateBitmap(operation.Fragment);
+				
+				RenderOperation largeEnoughRenderOperation = operation;
+				while (largeEnoughRenderOperation.TexelSize < pixelSize && operation.Parent != null) {
+					largeEnoughRenderOperation = largeEnoughRenderOperation.Parent;
+					bitmapCache.ReleaseCache(largeEnoughRenderOperation.Fragment);
+				}
+				
+				BitmapCacheItem c = UpdateBitmap(largeEnoughRenderOperation.Fragment);
 				graphics.DrawImage(c.Bitmap,
-				                   new PointF[] {operation.RenderDestination.LeftTopCornerF,
-				                                 operation.RenderDestination.RightTopCornerF,
-				                                 operation.RenderDestination.LeftBottomCornerF},
+				                   new PointF[] {largeEnoughRenderOperation.RenderDestination.LeftTopCornerF,
+				                                 largeEnoughRenderOperation.RenderDestination.RightTopCornerF,
+				                                 largeEnoughRenderOperation.RenderDestination.LeftBottomCornerF},
 				                   new RectangleF(c.X, c.Y, Fragment.FragmentSize, Fragment.FragmentSize),
 				                   GraphicsUnit.Pixel);
 			}
@@ -136,10 +145,12 @@ namespace Fractals
 			
 			RectangleD renderArea = new RectangleD((-fractal.View.Xpos + -data.Size / 2) * fractal.View.Xzoom,
 			                                       (-fractal.View.Ypos + -data.Size / 2) * fractal.View.Xzoom,
-			                                       2 * fractal.View.Xzoom * data.Size / 2,
-			                                       2 * fractal.View.Xzoom * data.Size / 2);
+			                                       fractal.View.Xzoom * data.Size,
+			                                       fractal.View.Xzoom * data.Size);
 			
-			RenderOperation root = new RenderOperation(data.Root, data.Area, renderArea, rotation);
+			pixelSize = Math.Min(2d / renderRectangle.Width, 2d / renderRectangle.Height);
+			
+			RenderOperation root = new RenderOperation(null, data.Root, data.Area, renderArea, rotation);
 			renderSet = new RenderSet(root, (int)numberOfFragmentsToRender);
 			Render(renderSet.RenderOperations);
 			
