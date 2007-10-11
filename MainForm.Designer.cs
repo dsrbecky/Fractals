@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Created by SharpDevelop.
  * User: ${USER}
  * Date: ${DATE}
@@ -50,62 +50,55 @@ namespace Fractals
 			this.menuItemAbout = new System.Windows.Forms.MenuItem();
 			this.menuItem1 = new System.Windows.Forms.MenuItem();
 			this.menuItem2 = new System.Windows.Forms.MenuItem();
-// 
-// mainMenu
-// 
+			this.SuspendLayout();
+			// 
+			// mainMenu
+			// 
 			this.mainMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
-			this.menuItemSave,
-			this.menuItemSettings,
-			this.menuItemAbout,
-			this.menuItem1,
-			this.menuItem2});
-			this.mainMenu.Name = "mainMenu";
-// 
-// menuItemSave
-// 
+									this.menuItemSave,
+									this.menuItemSettings,
+									this.menuItemAbout,
+									this.menuItem1,
+									this.menuItem2});
+			// 
+			// menuItemSave
+			// 
 			this.menuItemSave.Index = 0;
-			this.menuItemSave.Name = "menuItemSave";
 			this.menuItemSave.Text = "Save image";
-// 
-// menuItemSettings
-// 
+			// 
+			// menuItemSettings
+			// 
 			this.menuItemSettings.Index = 1;
-			this.menuItemSettings.Name = "menuItemSettings";
 			this.menuItemSettings.Text = "Setting";
-			this.menuItemSettings.Click += new System.EventHandler(this.menuItemSettings_Click);
-// 
-// menuItemAbout
-// 
+			// 
+			// menuItemAbout
+			// 
 			this.menuItemAbout.Index = 2;
-			this.menuItemAbout.Name = "menuItemAbout";
 			this.menuItemAbout.Text = "About";
-			this.menuItemAbout.Click += new System.EventHandler(this.menuItemAbout_Click);
-// 
-// menuItem1
-// 
+			// 
+			// menuItem1
+			// 
 			this.menuItem1.Index = 3;
-			this.menuItem1.Name = "menuItem1";
 			this.menuItem1.Text = "Refresh";
-// 
-// menuItem2
-// 
+			// 
+			// menuItem2
+			// 
 			this.menuItem2.Index = 4;
-			this.menuItem2.Name = "menuItem2";
 			this.menuItem2.Text = "GC";
-// 
-// MainForm
-// 
-			this.AutoScaleBaseSize = new System.Drawing.Size(7, 19);
+			// 
+			// MainForm
+			// 
+			this.AutoScaleBaseSize = new System.Drawing.Size(8, 21);
 			this.ClientSize = new System.Drawing.Size(512, 512);
-			this.MinimumSize = new System.Drawing.Size(140, 146);
+			this.MinimumSize = new System.Drawing.Size(160, 146);
 			this.Name = "MainForm";
 			this.Text = "Fractals 0.5 BETA";
 			this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
 			this.Resize += new System.EventHandler(this.Form1_Resize);
-			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picture_MouseUp);
+			this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainFormMouseMove);
 			this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picture_MouseDown);
-
+			this.ResumeLayout(false);
 		}
 	}
 }

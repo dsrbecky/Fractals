@@ -27,7 +27,9 @@ namespace Fractals
 			CompilerParameters param = new CompilerParameters();
 			param.GenerateInMemory = true;
 			foreach(AssemblyName name in Assembly.GetCallingAssembly().GetReferencedAssemblies()) {
-				param.ReferencedAssemblies.Add(name.Name + ".dll");
+				if (!name.Name.StartsWith("Tao.")) {
+					param.ReferencedAssemblies.Add(name.Name + ".dll");
+				}
 			}
 			param.ReferencedAssemblies.Add(Assembly.GetCallingAssembly().Location);
 			

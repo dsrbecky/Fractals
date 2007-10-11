@@ -16,26 +16,15 @@ namespace Fractals
 	public partial class MainForm
 	{
 		static int FPS = 25;
-		public static SettingsForm settingsForm;
-		bool zooming = false;
 		bool restartRenderLoop = false;
+		Renderer dataGenerator;
 		
 		public MainForm()
 		{
 			InitializeComponent();
-			settingsForm = new SettingsForm();
 			CurrentFractalSingleton.CurrentFractalChanged += delegate{ RestartRenderLoop(); };
 			MouseWheel += new MouseEventHandler (picture_MouseWheel);
 			ClientSize = new Size(512,512);
-		}
-		
-		[STAThread]
-		static void Main()
-		{
-			Application.EnableVisualStyles();
-			MainForm mainForm = new MainForm();
-			mainForm.Show();
-			mainForm.RenderLoop();
 		}
 		
 		private void Form1_Resize(object sender, System.EventArgs e)
@@ -55,43 +44,24 @@ namespace Fractals
 		
 		private void picture_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
-			zooming = true;
+			dataGenerator.mouseButtons = e.Button;
 			RestartRenderLoop();
 		}
 		
 		private void picture_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
-			zooming = false;
+			dataGenerator.mouseButtons = MouseButtons.None;
 		}
 		
 		private void picture_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
-			CurrentFractalSingleton.Instance.View.Angle += 10 * (e.Delta / 120);
+			dataGenerator.Rotate(Math.Sign(e.Delta));
 			RestartRenderLoop();
 		}
 		
 		private void UpdateMotion()
 		{
-			if (CurrentFractalSingleton.Instance.View.Rotating) {
-				CurrentFractalSingleton.Instance.View.AnimateRotation();
-			}
-			
-			if (zooming) {
-				double zoomSpeed = 1;
-				if (MouseButtons == MouseButtons.Left)   zoomSpeed = 1+8f/128;
-				if (MouseButtons == MouseButtons.Middle) zoomSpeed = 1;
-				if (MouseButtons == MouseButtons.Right)  zoomSpeed = 1-8f/128;
-				
-				View view = CurrentFractalSingleton.Instance.View;
-				PointF pos = PointToClient(MousePosition);
-				PointF logicalPos = new PointF(); // [-1,1] mapping
-				logicalPos.X = (((float)pos.X) / ClientRectangle.Width - 0.5f) * 2f;
-				logicalPos.Y = (((float)pos.Y) / ClientRectangle.Height - 0.5f) * 2f;
-				logicalPos.X /= 8f;
-				logicalPos.Y /= 8f;
-				
-				CurrentFractalSingleton.Instance.View.ZoomIn(logicalPos, zoomSpeed);
-			}
+			dataGenerator.Move();
 		}
 		
 		public void RestartRenderLoop()
@@ -99,13 +69,16 @@ namespace Fractals
 			restartRenderLoop = true;
 		}
 		
-		void RenderLoop()
+		public void RenderLoop()
 		{
 			while(!this.IsDisposed) {
 				Graphics graphics = CreateGraphics();
 				restartRenderLoop = false;
 				if (CurrentFractalSingleton.Instance.Compiles) {
-					DataGenerator dataGenerator = new DataGenerator(CurrentFractalSingleton.Instance, graphics, ClientRectangle);
+					if (dataGenerator == null) {
+						dataGenerator = new OpenGlRenderer(CurrentFractalSingleton.Instance, graphics, ClientRectangle);
+					}
+					dataGenerator.Fractal = CurrentFractalSingleton.Instance;
 					dataGenerator.TargetRenderTime = TimeSpan.FromSeconds(1d / FPS);
 					dataGenerator.UserThreadAction += delegate {
 						Application.DoEvents();
@@ -114,7 +87,7 @@ namespace Fractals
 						}
 					};
 					
-					while (!dataGenerator.Aborted && (zooming || CurrentFractalSingleton.Instance.View.Rotating)) {
+					while (!dataGenerator.Aborted && (dataGenerator.mouseButtons != MouseButtons.None || dataGenerator.Fractal.View.Rotating)) {
 						UpdateMotion();
 						dataGenerator.Render();
 						Text = String.Format("{0:F0} fps; {1} fragments; {2:F3} ms/frag",
@@ -134,21 +107,9 @@ namespace Fractals
 			}
 		}
 		
-		
-		private void MainForm_Load(object sender, EventArgs e)
+		void MainFormMouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
-			menuItemSettings.PerformClick();
-		}
-		
-		private void menuItemSettings_Click(object sender, System.EventArgs e)
-		{
-			settingsForm.Show();
-			settingsForm.BringToFront();
-		}
-		
-		private void menuItemAbout_Click(object sender, System.EventArgs e)
-		{
-			MessageBox.Show("Made by David Srbecky","About");
+			dataGenerator.mousePosition = new PointF((float)e.X / ClientRectangle.Width, (float)e.Y / ClientRectangle.Height);
 		}
 	}
 }

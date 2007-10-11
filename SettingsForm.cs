@@ -30,36 +30,36 @@ namespace Fractals
 			ApplyCodeChanges();
 		}
 		
-		void FractalFileComboBoxLoading(object sender, Fractals.Util.TextReaderEventArgs e)
+		void FractalFileComboBoxLoading(object sender, Util.TextReaderEventArgs e)
 		{
 			CurrentFractalSingleton.Instance = (Fractal)xmlFractalSerializer.Deserialize(e.TextReader);
 			equationCode.Text = CurrentFractalSingleton.Instance.Equation.Code.Replace("\n", "\r\n");
 			colorCode.Text = CurrentFractalSingleton.Instance.ColorMap.Code.Replace("\n", "\r\n");
 		}
 		
-		void FractalFileComboBoxSaving(object sender, Fractals.Util.TextWriterEventArgs e)
+		void FractalFileComboBoxSaving(object sender, Util.TextWriterEventArgs e)
 		{
 			xmlFractalSerializer.Serialize(e.TextWriter, CurrentFractalSingleton.Instance);
 		}
 		
-		void EquationFileComboBoxLoading(object sender, Fractals.Util.TextReaderEventArgs e)
+		void EquationFileComboBoxLoading(object sender, Util.TextReaderEventArgs e)
 		{
 			CurrentFractalSingleton.Instance.Equation = (Equation)xmlEquationSerializer.Deserialize(e.TextReader);
 			equationCode.Text = CurrentFractalSingleton.Instance.Equation.Code.Replace("\n", "\r\n");
 		}
 		
-		void EquationFileComboBoxSaving(object sender, Fractals.Util.TextWriterEventArgs e)
+		void EquationFileComboBoxSaving(object sender, Util.TextWriterEventArgs e)
 		{
 			xmlEquationSerializer.Serialize(e.TextWriter, CurrentFractalSingleton.Instance.Equation);
 		}
 		
-		void ColorFileComboBoxLoading(object sender, Fractals.Util.TextReaderEventArgs e)
+		void ColorFileComboBoxLoading(object sender, Util.TextReaderEventArgs e)
 		{
 			CurrentFractalSingleton.Instance.ColorMap = (ColorMap)xmlColorMapSerializer.Deserialize(e.TextReader);
 			colorCode.Text = CurrentFractalSingleton.Instance.ColorMap.Code.Replace("\n", "\r\n");
 		}
 		
-		void ColorFileComboBoxSaving(object sender, Fractals.Util.TextWriterEventArgs e)
+		void ColorFileComboBoxSaving(object sender, Util.TextWriterEventArgs e)
 		{
 			xmlColorMapSerializer.Serialize(e.TextWriter, CurrentFractalSingleton.Instance.ColorMap);
 		}

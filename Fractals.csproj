@@ -85,12 +85,15 @@
     <Reference Include="System.Xml">
       <Name>System.XML</Name>
     </Reference>
+    <Reference Include="Tao.FreeGlut" />
+    <Reference Include="Tao.OpenGl" />
+    <Reference Include="Tao.OpenGl.Glu" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataGenerator.cs">
+    <Compile Include="Renderer.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Fragment.cs">
@@ -138,6 +141,12 @@
     <Compile Include="RenderOperation.cs" />
     <Compile Include="RenderSet.cs" />
     <Compile Include="Util\HighPrecisionTimer.cs" />
+    <Compile Include="GuiRenderer.cs" />
+    <Compile Include="OpenGlRenderer.cs" />
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.ico" />

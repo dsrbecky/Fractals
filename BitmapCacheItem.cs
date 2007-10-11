@@ -9,7 +9,7 @@ namespace Fractals
 	public class BitmapCacheItem 
 	{
 		Fragment owner;
-		Bitmap bitmap;
+		Renderer.Texture texture;
 		int x, y;
 		
 		public Fragment Owner {
@@ -21,9 +21,18 @@ namespace Fractals
 			}
 		}
 		
-		public Bitmap Bitmap {
+		public Renderer.Texture Texture {
 			get {
-				return bitmap;
+				return texture;
+			}
+		}
+		
+		public RectangleF TextureSourceRect {
+			get {
+				return new RectangleF((float)(x + 0.5f),
+				                      (float)(y + 0.5f),
+				                      (float)Fragment.FragmentSize,
+				                      (float)Fragment.FragmentSize);
 			}
 		}
 		
@@ -39,9 +48,9 @@ namespace Fractals
 			}
 		}
 		
-		public BitmapCacheItem(Bitmap bitmap, int x, int y)
+		public BitmapCacheItem(Renderer.Texture texture, int x, int y)
 		{
-			this.bitmap = bitmap;
+			this.texture = texture;
 			this.x = x;
 			this.y = y;
 		}

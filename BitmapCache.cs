@@ -7,23 +7,25 @@ using System.Drawing.Imaging;
 namespace Fractals
 {
 	public class BitmapCache {
-		const int fragmentsPerBitmap = 16;
+		Renderer renderer;
+		
+		public const int BitmapSize = 256;
+		const int fragmentsPerBitmap = BitmapSize / Fragment.BitmapSize;
 		const int bitmapCount = 8;
 		
 		LinkedList<BitmapCacheItem> caches = new LinkedList<BitmapCacheItem>();
 		Dictionary<Fragment, BitmapCacheItem> fragmentsWithCache = new Dictionary<Fragment, BitmapCacheItem>();
 		
-		public BitmapCache()
+		public BitmapCache(Renderer renderer)
 		{
+			this.renderer = renderer;
 			// Create cache set
 			for (int i = 0; i < bitmapCount; i++) {
-				Bitmap bitmap = new Bitmap(fragmentsPerBitmap * Fragment.BitmapSize,
-				                           fragmentsPerBitmap * Fragment.BitmapSize,
-				                           PixelFormat.Format32bppPArgb);
+				Renderer.Texture tex = renderer.MakeTexture(BitmapSize, BitmapSize);
 				
 				for(int x = 0; x < fragmentsPerBitmap; x++) {
 					for(int y = 0; y < fragmentsPerBitmap; y++) {
-						caches.AddLast(new BitmapCacheItem(bitmap,
+						caches.AddLast(new BitmapCacheItem(tex,
 						                                   x * Fragment.BitmapSize,
 						                                   y * Fragment.BitmapSize));
 					}

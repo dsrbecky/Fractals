@@ -183,13 +183,11 @@ namespace Fractals
 			}
 		}
 		
-		public unsafe Bitmap MakeBitmap(ColorMap colorMap)
+		public uint[,] MakeImage(ColorMap colorMap)
 		{
-			Bitmap bitmap = new Bitmap(Fragment.BitmapSize, Fragment.BitmapSize, PixelFormat.Format32bppRgb);
-			BitmapData bmpData = bitmap.LockBits(new Rectangle(0, 0, Fragment.BitmapSize, Fragment.BitmapSize), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-			UInt32* ptr = (UInt32*) bmpData.Scan0.ToPointer();
-			for(int y = 0; y < Fragment.BitmapSize; y += 1) {
-				for(int x = 0; x < Fragment.BitmapSize; x += 1) {
+			uint[,] image = new uint[Fragment.BitmapSize, Fragment.BitmapSize];
+			for(int y = 0; y < Fragment.BitmapSize; y++) {
+				for(int x = 0; x < Fragment.BitmapSize; x++) {
 					uint k = 0;
 					
 					//k = 0x000F00 * (uint)(depth + 4);
@@ -202,17 +200,15 @@ namespace Fractals
 //					}
 					
 					if (x == Fragment.FragmentSize) {
-						*ptr = *(ptr-1); ptr++;
+						image[x,y] = image[x-1,y];
 					} else if (y == Fragment.FragmentSize) {
-						*ptr = *(ptr-Fragment.BitmapSize); ptr++;
+						image[x,y] = image[x,y-1];
 					} else {
-						*ptr = k + (uint)GetAntiAliasedColor(colorMap, x, y, 3).ToArgb(); ptr++;
+						image[x,y] = k + (uint)GetAntiAliasedColor(colorMap, x, y, 3).ToArgb();
 					}
 				}
 			}
-//			ptr--; *ptr = 0x000000FF; ptr++;
-			bitmap.UnlockBits(bmpData);
-			return bitmap;
+			return image;
 		}
 	}
 }
